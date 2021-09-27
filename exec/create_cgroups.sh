@@ -17,7 +17,7 @@ for i in cpuset memory; do
         if ! mount -t cgroup -o$i $i $CGROUPBASE/$i/; then
             echo "Error: Can not mount $i cgroup. Probably cgroup support is missing from running kernel. Unable to continue.
             To fix this, please make the following changes:
-            1. In /etc/default/grub, add 'cgroup_enable=memory swapaccount=1 unified_cgroup_hierarchy=0' to GRUB_CMDLINE_LINUX_DEFAULT (or GRUB_CMDLINE_LINUX if the former does not work)
+            1. In /etc/default/grub, add 'cgroup_enable=memory swapaccount=1 systemd.unified_cgroup_hierarchy=0' to GRUB_CMDLINE_LINUX_DEFAULT (or GRUB_CMDLINE_LINUX if the former does not work)
             2. Run update-grub
             3. Reboot" >&2
             exit 1
@@ -29,7 +29,7 @@ done
 if [ ! -f $CGROUPBASE/memory/memory.limit_in_bytes ] || [ ! -f $CGROUPBASE/memory/memory.memsw.limit_in_bytes ]; then
     echo "Error: cgroup support missing memory features in running kernel. Unable to continue.
     To fix this, please make the following changes:
-    1. In /etc/default/grub, add 'unified_cgroup_hierarchy=0 cgroup_enable=memory swapaccount=1' to GRUB_CMDLINE_LINUX_DEFAULT (or GRUB_CMDLINE_LINUX if the former does not work)
+    1. In /etc/default/grub, add 'systemd.unified_cgroup_hierarchy=0 cgroup_enable=memory swapaccount=1' to GRUB_CMDLINE_LINUX_DEFAULT (or GRUB_CMDLINE_LINUX if the former does not work)
     2. Run update-grub
     3. Reboot" >&2
     exit 1
