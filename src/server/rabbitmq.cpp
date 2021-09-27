@@ -1,5 +1,7 @@
 #include "server/rabbitmq.hpp"
 
+#include <sys/prctl.h>
+
 #include <future>
 #include <thread>
 
@@ -10,6 +12,13 @@ using namespace std;
 
 rabbitmq_channel::rabbitmq_channel(amqp &amqp, bool write) : queue(amqp), write(write) {
     connect();
+    if (write) {
+        std::thread message_write_thread([this]() {
+            prctl(PR_SET_NAME, "rabbitmq write loop", 0, 0, 0);
+            this->message_write_loop();
+        });
+        message_write_thread.detach();
+    }
 }
 
 void rabbitmq_channel::connect() {
@@ -48,14 +57,12 @@ bool rabbitmq_channel::fetch(rabbitmq_envelope &envelope, int timeout) {
     return false;
 }
 
-void rabbitmq_channel::report(const string &message) {
-    report(message, queue.routing_key);
-}
-
-void rabbitmq_channel::report(const string &message, const string &routing_key) {
-    auto msg_thread = std::thread([message, routing_key, this]() {
-        for (int retry = 0; retry < 5; retry++) {
-            AmqpClient::BasicMessage::ptr_t msg = AmqpClient::BasicMessage::Create(message);
+void rabbitmq_channel::message_write_loop() {
+    LOG_DEBUG << "Start message write loop for exchange: " << queue.exchange;
+    while (true) {
+        auto message = write_queue.pop();
+        AmqpClient::BasicMessage::ptr_t msg = AmqpClient::BasicMessage::Create(message.message);
+        for (int retry = 0;; retry++) {
             try {
                 LOG_DEBUG << "report: sending message to exchange:" << queue.exchange
                           << ", routing_key=" << queue.routing_key;
@@ -63,15 +70,19 @@ void rabbitmq_channel::report(const string &message, const string &routing_key) 
                 break;
             } catch (const std::exception &ex) {
                 LOG_DEBUG << "Sending message failed, retry: " << retry << ", cause: " << ex.what();
-                if (retry >= 4) throw;
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                 try_connect(false);
             }
         }
-        LOG_DEBUG << "Sending message succeeded";
-    });
+    }
+}
 
-    msg_thread.detach();
+void rabbitmq_channel::report(const string &message) {
+    report(message, queue.routing_key);
+}
+
+void rabbitmq_channel::report(const string &message, const string &routing_key) {
+    write_queue.push({message, queue.routing_key});
 }
 
 rabbitmq_envelope::rabbitmq_envelope() {}

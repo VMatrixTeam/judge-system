@@ -2,8 +2,10 @@
 
 #include <chrono>
 #include <mutex>
+#include <shared_mutex>
 #include "SimpleAmqpClient/SimpleAmqpClient.h"
 #include "server/config.hpp"
+#include "common/concurrent_queue.hpp"
 
 namespace judge::server {
 
@@ -45,14 +47,21 @@ struct rabbitmq_channel {
     void report(const std::string &message, const std::string &routing_key);
 
 private:
+    struct pending_message {
+        const std::string message;
+        const std::string routing_key;
+    };
+
     void connect();
     void try_connect(bool force);
+    void message_write_loop();
 
     AmqpClient::Channel::ptr_t channel;
     std::string tag;
     judge::server::amqp queue;
     bool write;
-    std::mutex mut;
+    
+    judge::concurrent_queue<pending_message> write_queue;
 };
 
 }  // namespace judge::server
