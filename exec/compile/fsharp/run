@@ -1,0 +1,48 @@
+﻿#!/bin/bash
+
+# F# compile wrapper-script for 'compile.sh'.
+# See that script for syntax and more info.
+#
+# This script byte-compiles with the MSBuild toolchain and generates
+# a shell script to run it with the dotnet CLI code generator later.
+#
+# This script requires dotnet-sdk to be installed in the chroot.
+
+DEST="$1" ; shift
+FRAMEWORK="netcoreapp3.1"
+
+DESTCLI="${DEST}.dll"
+
+cat > ${DEST}.fsproj << EOF
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFramework>${FRAMEWORK}</TargetFramework>
+    <DefineConstants>\$(DefineConstants);ONLINE_JUDGE</DefineConstants>
+  </PropertyGroup>
+</Project>
+EOF
+
+dotnet build -c Release -o bin
+EXITCODE=$?
+[ "$EXITCODE" -ne 0 ] && exit $EXITCODE
+
+# Check for output file:
+if [ ! -f "bin/$DESTCLI" ]; then
+	echo "Error: byte-compiled file 'bin/$DESTCLI' not found."
+	exit 1
+fi
+
+# Write executing script, executes dotnet on generated CLI code:
+cat > "$DEST" <<EOF
+#!/bin/sh
+cd bin
+exec dotnet "$DESTCLI" "\$@"
+EOF
+
+chmod a+x "$DEST"
+
+exit 0

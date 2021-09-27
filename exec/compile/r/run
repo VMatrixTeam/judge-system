@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# R compile wrapper-script for 'compile.sh'.
+# See that script for syntax and more info.
+#
+# This script does not actually "compile" the source, but writes a
+# shell script that will function as the executable: when called, it
+# will execute the source with the correct interpreter syntax, thus
+# allowing this interpreted source to be used transparantly as if it
+# was compiled to a standalone binary.
+#
+# This script requires that Rscript is installed in the chroot.
+
+DEST="$1" ; shift
+SOURCE_FILES="$1"; shift
+IFS=':' read -ra SOURCE_FILES_SPLITTED <<< "$SOURCE_FILES"
+MAINSOURCE="${ENTRY_POINT:-${SOURCE_FILES_SPLITTED[0]}}"
+
+# Report the entry point, so it can be saved, e.g. for later replay:
+if [ -z "$ENTRY_POINT" ]; then
+    echo "Info: detected entry_point: $MAINSOURCE"
+fi
+
+# No easy way to test R scripts for syntax
+
+# Check if entry point is valid
+if [ ! -r "$MAINSOURCE" ]; then
+    echo "Error: main source file '$MAINSOURCE' is not readable" >&2
+    exit 1
+fi
+
+
+# Write executing script:
+cat > "$DEST" <<EOF
+#!/bin/sh
+# 运行路径不一定是编译目录，因此我们需要切换到编译目录下运行，否则会找不到文件
+if [ "\${0%/*}" != "\$0" ]; then
+	cd "\${0%/*}"
+fi
+
+exec Rscript "$MAINSOURCE" "\$@"
+EOF
+
+chmod a+x "$DEST"
+
+exit 0

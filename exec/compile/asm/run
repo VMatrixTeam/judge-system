@@ -1,0 +1,30 @@
+#!/bin/bash
+#
+# x86 汇编编译器脚本
+# 汇编的入口点为 _start，不可以使用 libc
+#
+# 用法：$0 <dest> <source_files> <extra compile args...>
+#
+# <dest> 编译生成的可执行文件路径
+# <source_files> 参与编译的源代码，用冒号隔开
+# <extra compile args...> 额外的编译参数
+
+
+DEST="$1"; shift
+SOURCE_FILES="$1"; shift
+IFS=':' read -ra SOURCE_FILES_SPLITTED <<< "$SOURCE_FILES"
+
+SRC=()
+OBJ=()
+for file in "${SOURCE_FILES_SPLITTED[@]}"; do
+    if [[ "$file" == *.asm ]] || [[ "$file" == *.s ]] || [[ "$file" == *.S ]]; then
+        SRC+=("$file")
+        OBJ+=("$file.o")
+        nasm -felf64 "$file" -o "$file.o"
+    elif [[ "$file" == *.o ]]; then
+        OBJ+=("$file")
+    fi
+done
+
+ld "${OBJ[@]}" "$@" -o "$DEST"
+exit $?

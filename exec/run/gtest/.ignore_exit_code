@@ -1,0 +1,2 @@
+Google Test 在测试部分失败时会返回非零退出码，因此我们需要要求 check script 忽略返回值检查。
+run 脚本必须使用 exec 调用程序，否则 runguard 无法捕获用户程序的退出信号，进而无法返回 Runtime Error

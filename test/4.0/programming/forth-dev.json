@@ -1,0 +1,21 @@
+{
+  "type": "forth",
+  "category": "matrix",
+  "submissionQueue": {
+    "uri": "amqp://127.0.0.1:25565",
+    "queue": "matrix-judge-request",
+    "exchange": "matrix-judge-request-exchange",
+    "exchange_type": "direct",
+    "routing_key": "matrix-judge-request"
+  },
+  "reportQueue": {
+    "uri": "amqp://127.0.0.1:25565",
+    "queue": "matrix-judge-result",
+    "exchange": "matrix-judge-result-exchange",
+    "exchange_type": "direct",
+    "routing_key": "matrix-judge-result"
+  },
+  "systemConfig": {
+    "maxReportIOSize": 10240
+  }
+}

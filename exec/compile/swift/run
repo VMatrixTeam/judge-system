@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# Swift 编译器脚本
+#
+# 用法：$0 <dest> <source files...> <extra compile flags...>
+#
+# <dest> 编译生成的可执行文件路径
+# <source files...> 参与编译的源代码
+# <extra compile flags...> 提供给编译器的参数
+
+DEST="$1"; shift
+SOURCE_FILES="$1"; shift
+IFS=':' read -ra SOURCE_FILES_SPLITTED <<< "$SOURCE_FILES"
+MAINSOURCE="$ENTRY_POINT"
+
+if [ -z "$MAINSOURCE" ] && [ -f main.swift ]; then
+    MAINSOURCE="main.swift"
+fi
+
+SOURCES=()
+for i in "${SOURCE_FILES_SPLITTED[@]}" ; do
+    if [ "${i##*.}" = "swift" ]; then
+        SOURCE="$1"
+        [ -z "$MAINSOURCE" ] && MAINSOURCE="${SOURCE_FILES_SPLITTED[1]}"
+        if [ "$SOURCE" = "$MAINSOURCE" ] && [ "$MAINSOURCE" != "main.swift" ]; then
+            if [ -f "main.swift" ]; then
+                # 根据 Swift 编译器要求，入口文件名必须为 main.swift
+                # 如果 main.swift 不是 ENTRYPOINT，那么编译失败
+                echo "main.swift exists but is not the main source; not allowed by Swift compiler"
+                exit 1
+            else
+                # 根据 Swift 编译器要求，将入口文件名修改为 main.swift
+                mv "$SOURCE" main.swift
+                SOURCE="main.swift"
+            fi
+        fi
+
+        SOURCES+=("$SOURCE")
+    fi
+done
+
+# Report the entry point, so it can be saved, e.g. for later replay:
+if [ -z "$ENTRY_POINT" ]; then
+    echo "Info: detected entry_point: $MAINSOURCE"
+fi
+
+swiftc -DONLINE_JUDGE -O -o "$DEST" "${SOURCES[@]}"
+
+exit $?

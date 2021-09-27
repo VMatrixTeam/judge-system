@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# Bash 脚本的编译脚本
+# Bash 不需要编译参数，这里将忽略额外的编译参数
+
+DEST="$1" ; shift
+SOURCE_FILES="$1"; shift
+IFS=':' read -ra SOURCE_FILES_SPLITTED <<< "$SOURCE_FILES"
+MAINSOURCE="${ENTRY_POINT:-${SOURCE_FILES_SPLITTED[0]}}"
+
+RUNOPTIONS=""
+
+# Report the entry point, so it can be saved, e.g. for later replay:
+if [ -z "$ENTRY_POINT" ]; then
+	echo "Info: detected entry_point: $MAINSOURCE"
+fi
+
+# 检查 bash 脚本的语法
+for i in "${SOURCE_FILES_SPLITTED[@]}" ; do
+	bash $RUNOPTIONS -n "$i"
+	EXITCODE=$?
+	[ "$EXITCODE" -ne 0 ] && exit $EXITCODE
+done
+
+cat > "$DEST" <<EOF
+#!/bin/sh
+
+if [ "\${0%/*}" != "\$0" ]; then
+	cd "\${0%/*}"
+fi
+
+exec bash $RUNOPTIONS "$MAINSOURCE" "\$@"
+EOF
+
+chmod a+x "$DEST"
+
+exit 0

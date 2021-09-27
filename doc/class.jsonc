@@ -1,0 +1,48 @@
+{
+    "judger": {
+        "choice_judger": {},
+        "program_judger": {},
+        "program_output_judger": {}
+    },
+    "client_task": {}, // 评测的服务端发给评测客户端的评测任务
+    "core_quest": {},
+    "choice_question": {},
+    "program_output_question": {},
+    "submission": {
+        "choice_submission": {},
+        "programming_submission": {},
+        "programming_output_submission": {}
+    },
+    "judge_exception": {
+        "compilation_error": {
+            "executable_compilation_error": {}
+        }
+    },
+    "program_limit": {
+        "judge_task": {}
+    },
+    "judge_task_result": {},
+    "executable_manager": {
+        "local_executable_manager": {}
+    },
+    "program": {
+        // virtual fetch = 0
+        "executable": {
+            "local_executable": {}
+        },
+        "empty_executable": {},
+        "submission_program": {
+            "source_code": {},
+            "git_repository": {}
+        }
+    },
+    "asset": {
+        "local_executable_asset": {},
+        "remote_executable_asset": {},
+    },
+    "test_case_data": {},
+    "action": {
+        "read_action": {}
+    },
+    "action_result": {},
+}

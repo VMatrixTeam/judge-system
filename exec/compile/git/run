@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Git 编译脚本
+# Git 仓库类型题目要求在 Git 仓库内提供 Makefile 或者
+# build 脚本以执行编译
+
+export DEST="$1"; shift
+
+if [ -f "./build" ]; then
+    chmod +x ./build
+    exec ./build
+else
+    exec make -f Makefile
+fi

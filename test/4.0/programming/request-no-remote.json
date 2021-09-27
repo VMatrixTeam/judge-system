@@ -1,0 +1,167 @@
+{
+    "type": "programming", 
+    "category": "exam",
+    "prob_id": "1234",
+    "sub_id": "W12345",
+    "updated_at": 0, 
+    "judge_tasks": [
+        {
+            "check_script": "compile",
+            "run_script": "unused",
+            "compare_script": "unused",
+            "is_random": false, 
+            "testcase_id": -1, 
+            "depends_on": -1, 
+            "depends_cond": "ACCEPTED", 
+            "memory_limit": 262144, 
+            "time_limit": 10000, 
+            "file_limit": -1, 
+            "proc_limit": -1 
+        },
+        {
+            "check_script": "standard", 
+            "run_script": "standard",
+            "compare_script": "", 
+            "is_random": false, 
+            "testcase_id": 0, 
+            "depends_on": 0, 
+            "depends_cond": "ACCEPTED", 
+            "memory_limit": 262144, 
+            "time_limit": 1.0, 
+            "file_limit": 524288, 
+            "proc_limit": -1 
+        },
+        {
+            "check_script": "standard", 
+            "run_script": "standard",
+            "compare_script": "diff-ign-space", 
+            "is_random": true, 
+            "testcase_id": -1, 
+            "depends_on": 0, 
+            "depends_cond": "ACCEPTED", 
+            "memory_limit": 262144, 
+            "time_limit": 1.0, 
+            "file_limit": 524288, 
+            "proc_limit": -1 
+        },
+        {
+            "check_script": "memory", 
+            "run_script": "standard",
+            "compare_script": null, 
+            "is_random": false,
+            "testcase_id": -1, 
+            "depends_on": 1, 
+            "depends_cond": "ACCEPTED",
+            "memory_limit": 524288, 
+            "time_limit": 20.0, 
+            "file_limit": 524288, 
+            "proc_limit": -1 
+        },
+        {
+            "check_script": "memory", 
+            "run_script": "standard",
+            "compare_script": null, 
+            "is_random": true,
+            "testcase_id": -1,
+            "depends_on": 2, 
+            "depends_cond": "ACCEPTED",
+            "memory_limit": 524288, 
+            "time_limit": 20.0, 
+            "file_limit": 524288, 
+            "proc_limit": -1 
+        },
+        {
+            "check_script": "static", 
+            "run_script": null, 
+            "compare_script": null, 
+            "is_random": false,
+            "testcase_id": -1, 
+            "depends_on": -1, 
+            "depends_cond": "ACCEPTED",
+            "memory_limit": 262144, 
+            "time_limit": 10.0, 
+            "file_limit": 524288, 
+            "proc_limit": -1 
+        }
+    ],
+    "test_data": [
+        {
+            "inputs": [
+                {
+                    "type": "text", 
+                    "name": "testdata.in", 
+                    "text": "1\n" 
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "text",
+                    "name": "testdata.out", 
+                    "text": "10\n"
+                }
+            ]
+        },
+        {
+            "inputs": [
+                {
+                    "type": "text",
+                    "name": "testdata.in", 
+                    "text": "2\n"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "text",
+                    "name": "testdata.out", 
+                    "text": "20\n"
+                }
+            ]
+        }
+    ],
+    "submission": { 
+        "type": "source_code",
+        "language": "cpp",
+        "entry_point": null, 
+        "source_files": [
+            {
+                "type": "text",
+                "name": "main.cpp",
+                "text": "#include <bits/stdc++.h>\nint main() { int a; cin >> a; cout << a * 10 << endl; return 0; }"
+            }
+        ],
+        "assist_files": [
+            {
+                "type": "text",
+                "name": "main.hpp",
+                "text": ""
+            }
+        ],
+        "compile_command": [
+            "-Werror",
+            "-lm",
+            "-g"
+        ]
+    },
+    "standard": {
+        "type": "source_code",
+        "language": "c",
+        "source_files": [
+            {
+                "type": "text",
+                "name": "main.c",
+                "text": "#include <stdio.h>\nint main() { int a; scanf(\"%d\", &a); printf(\"%d\n\", a * 10); return 0; }"
+            }
+        ]
+    },
+    "random": {
+        "type": "source_code",
+        "language": "c",
+        "source_files": [
+            {
+                "type": "text",
+                "name": "main.c",
+                "text": "#include <stdio.h>\nint main() { printf(\"%d\n\", 5); return 0; }"
+            }
+        ]
+    }
+}

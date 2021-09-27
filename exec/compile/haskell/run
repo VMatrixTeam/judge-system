@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# Haskell 编译器脚本
+
+DEST="$1"; shift
+SOURCE_FILES="$1"; shift
+IFS=':' read -ra SOURCE_FILES_SPLITTED <<< "$SOURCE_FILES"
+
+ghc -x hs -Wall -Wwarn -O -optl-pthread -o "$DEST" "${SOURCE_FILES_SPLITTED[@]}" "$@"
+exitcode=$?
+
+# 清理生成的多余文件
+rm -f "$DEST.o" Main.hi
+
+exit $exitcode

@@ -1,0 +1,276 @@
+syntax = "proto3";
+
+message Submission {
+  string category = 1; // 服务端的 id，用于评测分别请求来自于哪里。返回的消息用该项作为 routing_key
+  /*optional*/ string prob_id = 2; // 题目 id，评测以题目为单位缓存数据。如果不存在题目（比如 Playground 类型），则该项留 null
+  string sub_id = 3; // 提交 id
+  int64 updated_at = 4;
+
+  oneof submission {
+    ProgrammingSubmission programming = 100;
+    OutputSubmission output = 101;
+    ChoiceSubmission choice = 102;
+    ProgramBlankFillingSubmission program_blank_filling = 103;
+  }
+}
+
+message ProgrammingSubmission {
+  repeated JudgeTask judge_tasks = 5;
+  repeated TestDatum test_data = 6;
+  Program submission = 7; // 选手的程序提交，对于标准程序正确性检查，这里同时传递标准程序的信息（即与 standard 项完全一致）
+  /*optional*/ Program standard = 8; // 标准程序，用于随机测试数据生成。若为空，则不进行随机测试
+  /*optional*/ Program random = 9; // 随机数据生成器。若为空，则不进行随机测试。
+  /*optional*/ Program compare = 10; // 比较程序。若为空，则所有的评测任务不可以使用自定义比较器。
+}
+
+message OutputSubmission {}
+
+message ChoiceSubmission {}
+
+message ProgramBlankFillingSubmission {}
+
+message JudgeTask {
+  /*optional*/ string tag = 1; // 用于标记评测任务用途，会原样在评测报告中返回
+  string check_script = 2; // 检查脚本 id，可能的候选项："compile", "standard", "standard-trusted", "static"
+  string run_script = 3; // 运行脚本 id，可能的候选项："standard", "gtest", "valgrind"
+  string compare_script = 4; // 比较脚本 id，可能的候选项："diff-ign-space", "diff-all", "valgrind", "gtest"
+  bool is_random = 5; // 该评测任务是否需要生成随机测试数据。若为真，评测会调用标准程序和随机数据生成器生成数据
+
+  /*
+   * 对于采用标准测试数据的评测任务，这里表示标准测试数据组编号。
+   * 若为 -1 或 null，则表示当前评测任务不需要标准测试数据（比如 GTest 可以不需要输入数据）。
+   *
+   * 对于采用随机测试数据的评测任务，该项表示随机测试数据组编号。
+   * 由于要支持允许随机数据生成器根据随机测试数据组编号生成数据（比如第一组随机测试数据生成链、第二组随机测试数据生成树），
+   * 随机测试数据组也需要编号。评测系统将会为每个随机测试数据组生成数个候选数据，当需要评测第 N 组随机测试时，
+   * 评测系统将在第 N 组随机测试数据组的数个候选数据中随机抽取一个用于评测，从而保证随机性。
+   */
+  /*optional*/ int32 testcase_id = 6;
+
+  /*
+   * 该评测任务的执行依赖于哪个评测任务。
+   * 随机测试、标准测试、GTest、静态测试均直接依赖于编译测试。
+   *
+   * 内存测试则依赖标准测试，如果不存在标准测试则依赖随机测试，此时内存测试将采用所依赖的使用标准测试数据或使用随机测试数据的评测任务所使用的数据进行评测（就是保证内存测试和依赖的测试用同一套数据）。
+   * 如果内存测试直接依赖编译测试，且 is_random=true，也会自己产生随机测试数据进行测试。
+  */
+  int32 depends_on = 7;
+
+  /*optional*/ int64 memory_limit = 9; // 内存限制（单位为 KB）。为 -1 或空时不限制此项。
+  int64 time_limit = 10; // 时间限制（单位为毫秒）。
+  /*optional*/ int64 file_limit = 11; // 文件写入限制（单位为 KB），目的是限制学生程序的输出过多导致磁盘占用紧张。服务端可以将此项设置为全局设置以节省数据库存储空间。为  -1 或空时不限制此项。
+  /*optional*/ int64 proc_limit = 12; // 进程数限制，目的是防止学生程序产生了大量进程卡死评测机。建议设置为 3~10。为  -1 或空时不限制此项。此项设为 1 将会导致评测失败。
+  repeated string run_args = 13; // 运行参数，比如对于 Google Test，可以传递 --gtest_also_run_disabled_tests 之类的参数。
+  repeated Action actions = 14; // 本评测任务执行完成后需要执行的操作，包括读取程序输出到评测报告中，读取程序输出并上传到文件系统等。
+}
+
+message Action {
+  string tag = 1;
+
+  ReadAction read = 101;
+  CommandAction command = 102;
+}
+
+// 评测任务执行完成后执行读取文件内容的动作
+message ReadAction {
+  enum Action {
+    TEXT = 1; // 文件内容将会在 JudgeTaskResult 中返回
+    UPLOAD = 2; // 文件内容将会上传到指定的 url，为 http post 请求。
+    BOTH = 3; // 文件大小小于 file_limit 的将会在 JudgeTaskResult 中返回（即 text），文件大小大于 file_limit 的将会上传内容到指定的 url（即 upload）
+  }
+  
+  enum Condition {
+    NON_ACCEPTED = 1; // 非完全正确时执行任务
+    ACCEPTED = 2; // 通过时执行任务
+    PARTIAL_CORRECT = 3; // 通过或部分通过时执行任务
+    NON_PARTIAL_CORRECT = 4; // 不通过时执行任务
+    ALWAYS = 5; // 任何情况下都执行任务
+  }
+
+  Action action = 1;
+  Condition condition = 2;
+
+  /*optional*/ string url = 3; // 若 action == "upload" 或 action == "both"，该项存在且为文件上传地址
+
+  /*
+   * 要读取的文件路径，示例如下：
+   * $DATADIR/input/testdata.in 为读取该数据组的标准输入
+   * $DATADIR/output/testdata.out 为读取该数据组的标准输出
+   * $RUNDIR/testdata.out 为读取选手程序的标准输出
+   */
+  string path = 4;
+  /*optional*/ int64 file_limit = 5; // 读取文件的截断大小（单位为字节）。
+}
+
+// 评测任务执行完成后要执行的命令，评测系统将在 JudgeTaskResult 中返回命令执行的结果。命令执行的时候没有 root 权限。
+//
+// 你可以通过以下方式实现：
+// 1. 实现读取选手程序的标准输出文件：cat /judge/testdata.out
+// 2. 实现读取该数据组的标准输入：cat /data/input/testdata.in
+// 3. 实现读取该数据组的标准输出：cat /data/output/testdata.out
+message CommandAction {
+  string command = 1; // 要执行的命令
+}
+
+message TestDatum {
+  // 输入数据，若 asset.name 为 testdata.in，将被视为标准输入，并提供给学生程序的 stdin 读取。
+  repeated Asset inputs = 1;
+
+  // 输出数据，若 asset.name 为 testdata.out，将被视为标准输出，并与学生程序的 stdout 进行比较。
+  repeated Asset outputs = 2;
+}
+
+message Asset {
+
+  message Text {
+    string text = 1; // 表示一个文本文件，text 直接存储文本文件内容。
+  }
+
+  message Remote {
+    string url = 1; // 表示一个远程文件，评测系统将通过 http get 的方式下载文件。
+  }
+
+  message Local {
+    string path = 1; // 表示一个评测机的本地文件。
+  }
+
+  // 该文件的路径，为相对路径。
+  // 比如对于输入测试数据，名字为 test.in 的文件，学生可以通过 freopen("test.in", "r", stdin); 的方式打开文件。
+  // 比如对于源代码，名字为 cn/org/vmatrix/Main.java 的文件将表示 cn.org.vmatrix.Main 这个类的源文件
+  string name = 1;
+  
+  oneof asset {
+    Text text = 101;
+    Remote remote = 102;
+    Local local = 103;
+  }
+}
+
+message Program {
+  SourceCode source_code = 1; // 表示一种程序，其源代码直接通过 http 等方式从网络获取。
+  GitRepository git = 2; // 表示一种程序，其源代码通过 git clone 的方式获取。
+}
+
+message SourceCode {
+  /*
+   * 该程序的编译方式（不一定是编程语言）。目前可选项有：
+   * ada, awk, bash, c, cpp, fortran95, go, haskell, java, js, kotlin, lua, make, pas, perl, python2, python3, r, ruby, rust, scala, swift
+   * 以上为评测系统提供的预设编译方式（而不是提供编程语言）：
+   * 比如 “cpp” 提供了一种预设的 C++ 程序编译方式，而且这种方式允许静态检查；"make" 提供了一种预设的 Makefile 编译方式，需要程序源代码包含 Makefile 以便编译。
+   * 其中，如果你需要创建一个多语言题目，或者需要自定义编译命令，则使用 make，并将源代码的第一项设置为 Makefile 并通过 make 来完成编译，且编译生成的程序名必须为 "run"
+   */ 
+  string language = 1;
+
+  // 对于 Java 来说，这个存储 Java 的主类名；对于 Python，这个存储要执行的 Python 脚本名
+  /*optional*/ string entry_point = 2;
+
+  // 代码文件集。entry_point=null 时，对于需要手动确定主源文件的语言，源代码的第一个文件表示主文件，比如对于 Java，第一个文件就是主类。
+  repeated Asset source_files = 3;
+
+  // 对于不可以传递给编译器的源代码文件，存放在这里。比如存在 #include "source.cpp" 这种情况，source.cpp 被视为头文件处理，若参与编译将会导致链接错误。
+  repeated Asset assist_files = 4;
+
+  // 编译参数。如果需要添加额外的编译参数，使用此项。注意，编译脚本会预先添加一些编译参数，这里只存放题目限定的额外编译参数。
+  repeated string compile_command = 5;
+}
+
+/*
+ * 表示一种程序，其源代码通过 git clone 的方式获取。
+ *
+ * GitRepository 类型的程序必须保证代码的根目录包含 Makefile 以执行编译（通过 Git 仓库本身提供 Makefile 或者 overrides 提供皆可）。
+ * 对于限制语言的大作业，可以将 Makefile 设置为不可修改（放进 overrides 里）以确保编译命令不被修改。
+ * 对于不限语言的大作业，可以将 Makefile 留给学生自行编写或提供一个模板（Git 仓库的初始代码）。
+ * 注意，Git 仓库的初始代码集和 overrides 可能不一样，初始代码集可以被修改，但 overrides 内的文件不可修改（就算学生在 Git 仓库中修改了这些文件也会被评测系统覆盖回去）。
+ */
+message GitRepository {
+  string url = 1; // Git 仓库的链接，比如 git://github.com/huanghongxun/Judger.git
+
+  string commit_hash = 2; // 要获取的 commit hash
+
+  /*optional*/ string username = 3; // Git 仓库 clone 时所需的用户名
+  /*optional*/ string password = 4; // Git 仓库 clone 时所需的密码
+
+  /*
+   * 覆盖代码文件集。学生可能会修改部分不可修改的文件，通过这种方式将文件覆盖回去。
+   * 或者提供一些必要的环境。覆盖代码文件集内文件不一定要在 git 仓库内必须存在。
+   */
+  repeated Asset overrides = 5;
+
+  // 代码文件集。如果你需要静态检查，需要将参与静态检查的文件填入此处。
+  repeated Asset source_files = 6;
+}
+
+message JudgeReport {
+  string sub_type = 1; // 与请求时的 Submission.type 一致
+  string category = 2; // 与请求时的 Submission.category 一致
+  /*optional*/ string prob_id = 3; // 与请求时的 Submission.prob_id 一致
+  string sub_id = 4; // 与请求时的 Submission.sub_id 一致
+  repeated JudgeTaskResult results = 5; // 评测任务的评测结果，若评测请求不合法，此项为空
+  /*optional*/ string message = 6; // 如果评测请求不合法，将返回错误信息
+}
+
+enum JudgeResultStatus {
+  PENDING = 0; // 该评测任务还在评测队列中等待
+  RUNNING = 1; // 该评测任务正在运行
+  ACCEPTED = 2; // 该评测任务测试通过（比如通过编译、标准测试输出一致，Google Test 测试全部通过，内存测试没有检测到问题，静态测试没有检测到问题）
+  PARTIAL_CORRECT = 3; // 该评测任务获得部分分（比如标准随机测试的自定义校验器可能返回部分分，Google Test 测试部分通过，内存测试和静态测试分数没有被扣到 0 分）
+  COMPILATION_ERROR = 4; // 对于编译任务，选手程序编译失败
+  EXECUTABLE_COMPILATION_ERROR = 5; // 对于编译任务，标准程序、随机程序编译失败
+  DEPENDENCY_NOT_SATISFIED = 6; // 该评测任务依赖项未通过，当前评测任务不予评测
+  WRONG_ANSWER = 7; // 答案错误
+  RUNTIME_ERROR = 8; // 运行时错误
+  TIME_LIMIT_EXCEEDED = 9; // 超出时间限制
+  MEMORY_LIMIT_EXCEEDED = 10; // 超出内存限制
+  OUTPUT_LIMIT_EXCEEDED = 11; // 超出输出限制（限制选手程序写入磁盘的数据量）
+  PRESENTATION_ERROR = 12; // 答案格式错误（一般是空格、空行与标准输出不匹配）
+  RESTRICT_FUNCTION = 13; // 访问受限的系统调用（本评测系统不会返回该结果）
+  OUT_OF_CONTEST_TIME = 14; // 超出比赛/考试时间（本评测系统不会返回该结果）
+  COMPILING = 15; // 对于编译任务，选手程序正在编译
+  SEGMENTATION_FAULT = 16; // 段错误
+  FLOATING_POINT_ERROR = 17; // 浮点运算错误，一般是选手程序除零
+  RANDOM_DATA_GENERATION_ERROR = 18; // 随机数据生成器或标准程序运行错误、超出时间限制、超出内存限制、超出输出限制
+  COMPARISON_ERROR = 19; // 比较器运行错误、超出时间限制、超出内存限制、超出输出限制
+  SYSTEM_ERROR = 20; // 评测系统内部错误
+}
+
+message JudgeTaskResult {
+  string tag = 1; // 评测任务的标记，方便前端/服务端处理评测报告使用，和评测请求的 JudgeTask.tag 完全一致
+  JudgeResultStatus status = 2; // 评测结果
+  
+  /*
+   * 评测的得分。对于 Accepted，该项为 "1/1"；对于 Partial Correct，该项存储 0~1 的分数；对于其他情况，该项为 "0/1"。
+   * 对于 Google Test 测试，该项将存储通过组数比总测试组。
+   * 对于内存测试，每 1 个错误扣 10% 的分数。
+   * 对于静态测试，每 1 个 priority 1 扣 20% 分数，每 1 个 priority 2 扣 10% 的分数。
+   */
+  string score = 3;
+
+  int64 run_time = 4; // 运行时长（单位为毫秒）。
+
+  int64 memory_used = 5; // 内存使用（单位为 KB）。
+
+  /*
+   * 当 compare_script 为 gtest、valgrind；check_script 为 oclint 时将会返回评测详细信息，格式为 JSON。
+   * 当 check_script 为 compile 时（编译测试），report 为编译日志。
+   */
+  string report = 6;
+
+  /*
+   * 总是当前测试的日志。
+   * 对于编译测试，这里将存储编译失败的原因。
+   * 对于其他测试，若出现 SYSTEM_ERROR，这里将存储错误信息。
+   * 对于其他测试，这里将存储一些评测日志。
+   */
+  string error_log = 7;
+
+  // 如果 JudgeTask 中声明了要执行的操作，此处会返回执行操作的结果，按顺序存放。
+  repeated ActionResult actions = 8;
+}
+
+message ActionResult {
+  // 操作的标记，方便前端/服务端处理评测报告使用，和评测请求的 Action.tag 完全一致
+  /*optional*/ string tag = 1;
+
+  // 操作的结果，比如读取操作的结果就是文件内容，命令操作的结果就是命令的标准输出内容
+  string result = 2;
+}

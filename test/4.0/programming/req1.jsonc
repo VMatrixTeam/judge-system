@@ -1,0 +1,198 @@
+{
+    "type": "programming",
+    "category": "exam",
+    "prob_id": "1234",
+    "sub_id": "12345",
+    "updated_at": 0,
+    "judge_tasks": [
+        {
+            "tag": "CompileCheck",
+            "check_script": "compile",
+            "run_script": "",
+            "compare_script": "",
+            "is_random": false,
+            "testcase_id": -1,
+            "depends_on": -1,
+            "depends_cond": "ACCEPTED",
+            "memory_limit": 262144,
+            "time_limit": 10000,
+            "file_limit": -1,
+            "proc_limit": -1
+        },
+        {
+            "tag": "StandardCheck",
+            "check_script": "standard",
+            "run_script": "standard",
+            "compare_script": "diff-ign-trailing",
+            "is_random": false,
+            "testcase_id": 0,
+            "depends_on": 0,
+            "depends_cond": "ACCEPTED",
+            "memory_limit": 262144,
+            "time_limit": 1000,
+            "file_limit": 524288,
+            "proc_limit": -1,
+            "actions": [
+                {
+                    "type": "read",
+                    "tag": "stdin",
+                    "action": "text",
+                    "path": "$DATADIR/input/testdata.in"
+                },
+                {
+                    "type": "read",
+                    "tag": "stdout",
+                    "action": "text",
+                    "path": "$RUNDIR/testdata.out"
+                }
+            ]
+        },
+        {
+            "tag": "RandomCheck",
+            "check_script": "standard",
+            "run_script": "standard",
+            "compare_script": "diff-ign-trailing",
+            "is_random": true,
+            "testcase_id": 0,
+            "depends_on": 0,
+            "depends_cond": "ACCEPTED",
+            "memory_limit": 262144,
+            "time_limit": 1000,
+            "file_limit": 524288,
+            "proc_limit": -1
+        },
+        {
+            "tag": "MemoryCheck",
+            "check_script": "standard",
+            "run_script": "valgrind",
+            "compare_script": "valgrind",
+            "is_random": false,
+            "testcase_id": -1,
+            "depends_on": 1,
+            "depends_cond": "ACCEPTED",
+            "memory_limit": 524288,
+            "time_limit": 20000,
+            "file_limit": 524288,
+            "proc_limit": -1
+        },
+        {
+            "tag": "MemoryCheck",
+            "check_script": "standard",
+            "run_script": "valgrind",
+            "compare_script": "valgrind",
+            "is_random": true,
+            "testcase_id": -1,
+            "depends_on": 2,
+            "depends_cond": "ACCEPTED",
+            "memory_limit": 524288,
+            "time_limit": 20000,
+            "file_limit": 524288,
+            "proc_limit": -1
+        },
+        {
+            "tag": "StaticCheck",
+            "check_script": "static",
+            "is_random": false,
+            "testcase_id": -1,
+            "depends_on": -1,
+            "depends_cond": "ACCEPTED",
+            "memory_limit": 262144,
+            "time_limit": 10000,
+            "file_limit": 524288,
+            "proc_limit": -1
+        }
+    ],
+    "test_data": [
+        {
+            "inputs": [
+                {
+                    "type": "text",
+                    "name": "testdata.in",
+                    "text": "1\n"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "text",
+                    "name": "testdata.out",
+                    "text": "10\n"
+                }
+            ]
+        },
+        {
+            "inputs": [
+                {
+                    "type": "text",
+                    "name": "testdata.in",
+                    "text": "2\n"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "text",
+                    "name": "testdata.out",
+                    "text": "20\n"
+                }
+            ]
+        }
+    ],
+    "submission": {
+        "type": "source_code",
+        "language": "cpp",
+        "entry_point": null,
+        "source_files": [
+            {
+                "type": "text",
+                "name": "main.cpp",
+                "text": "#include <bits/stdc++.h>\nusing namespace std;\nint main() { int a; cin >> a; cout << a * 10 << endl; return 0; }"
+            }
+        ],
+        "assist_files": [
+            {
+                "type": "text",
+                "name": "main.hpp",
+                "text": ""
+            }
+        ],
+        "compile_command": [
+            "-Werror",
+            "-lm",
+            "-g"
+        ]
+    },
+    "standard": {
+        "type": "source_code",
+        "language": "cpp",
+        "entry_point": null,
+        "source_files": [
+            {
+                "type": "text",
+                "name": "main.cpp",
+                "text": "#include <bits/stdc++.h>\nusing namespace std;\nint main() { int a; cin >> a; cout << a * 10 << endl; return 0; }"
+            }
+        ],
+        "assist_files": [
+            {
+                "type": "text",
+                "name": "main.hpp",
+                "text": ""
+            }
+        ],
+        "compile_command": [
+            "-Werror",
+            "-lm",
+            "-g"
+        ]
+    },
+    "random": {
+        "type": "source_code",
+        "language": "python3",
+        "source_files": [
+            {
+                "type": "text",
+                "name": "main.py",
+                "text": "import random\nprint(random.randint(3, 4))"
+            }
+        ]
+    }
+}

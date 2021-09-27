@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# ADA compile wrapper-script for 'compile.sh'.
+# See that script for syntax and more info.
+
+DEST="$1" ; shift
+SOURCE_FILES="$1"; shift
+IFS=':' read -ra SOURCE_FILES_SPLITTED <<< "$SOURCE_FILES"
+MAINSOURCE="${SOURCE_FILES_SPLITTED[0]}"
+
+gnatmake -o "$DEST" "${SOURCE_FILES_SPLITTED[@]}" "$@"
+exitcode=$?
+
+# clean created files:
+rm -f "$DEST.o" "$DEST.ali"
+
+exit $exitcode

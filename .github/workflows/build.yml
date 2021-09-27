@@ -1,0 +1,21 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    # virtual environments: https://github.com/actions/virtual-environments
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, which is the CWD for
+      # the rest of the steps
+      - uses: actions/checkout@v2
+        with: 
+          submodules: "recursive"
+
+      - name: Install Packages
+        run: hack/install_packages.sh -y
+
+      - name: Build Judge System
+        run: hack/build.sh

@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+import xmltodict
+import json
+import sys
+import os
+
+'''
+转换 valgrind 输出的脚本，返回值：
+
+42: 内存测试通过，将返回 Accepted
+1: 内部错误，返回 Compare Error，python 脚本出现未捕获异常时也会返回 1
+43: 内存测试未通过，返回 Wrong Answer
+'''
+
+if len(sys.argv) != 5:
+    sys.stderr.write('{0}: 4 arguments needed, {1} given\n'.format(sys.argv[0], len(sys.argv) - 1))
+    print("Usage: {0} [stdin] [userout] [stdout] [feedback]".format(sys.argv[0]))
+    sys.exit(2)
+
+xml_file = open(os.path.join(sys.argv[2], 'valgrind.xml'), 'r')
+result_file = open(os.path.join(sys.argv[4], 'report.txt'), 'w')
+
+def as_list(obj, field):
+    if field not in obj:
+        obj[field] = []
+    if not isinstance(obj[field], list):
+        obj[field] = [obj[field]]
+
+try:
+    xml_result = xmltodict.parse(xml_file.read())
+    xml_result = xml_result["valgrindoutput"]
+    # 如果没有 error，会报 KeyError，认为是正确的
+    if not isinstance(xml_result["error"], list):
+        xml_result["error"] = [xml_result["error"]]
+    for err in xml_result["error"]:
+        as_list(err, "stack")
+        for stack in err["stack"]:
+            as_list(stack, "frame")
+            for item in stack["frame"]:
+                item.pop("obj", None)
+                item.pop("dir", None)
+    result_file.write(json.dumps(xml_result, indent=4))
+    sys.exit(43)
+except KeyError as e:
+    if e.args[0] == 'error':
+        sys.exit(42)
+    else:
+        sys.stderr.write('Internal error: {0} is not found during parsing memory check result\n'.format(e.args[0]))
+        sys.exit(1)
+except Exception as e:
+    sys.stderr.write('Internal error: XML may be malformed\n{0}'.format(xml_file.read()))
+    raise e

@@ -1,0 +1,18 @@
+#!/bin/bash
+#
+# 模糊比较脚本
+# 用法：$0 <std.in> <user.out> <std.out>
+#
+# 本运行脚本通过 diff 命令比较程序输出和标准输出
+# 在存在多余空格和空行时也会判为 Accepted
+
+TESTIN="$1/testdata.in"
+PROGRAM="$2/testdata.out"
+TESTOUT="$3/testdata.out"
+
+diff --strip-trailing-cr --ignore-trailing-space --ignore-space-change --ignore-blank-lines "$PROGRAM" "$TESTOUT" >/dev/null 2>&1
+EXITCODE=$?
+[[ $EXITCODE -gt 1 ]] && exit 1
+[[ $EXITCODE -ne 0 ]] && exit 43
+
+exit 42 # Accepted

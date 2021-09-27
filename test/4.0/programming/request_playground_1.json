@@ -1,0 +1,67 @@
+{
+    "type": "programming",
+    "category": "playground",
+    "sub_id": "27",
+    "judge_tasks": [
+        {
+            "tag": "CompileCheck",
+            "check_script": "compile",
+            "run_script": "unused",
+            "compare_script": "unused",
+            "is_random": false,
+            "testcase_id": -1,
+            "depends_on": -1,
+            "depends_cond": "ACCEPTED",
+            "memory_limit": 262144,
+            "time_limit": 10000,
+            "file_limit": 524288,
+            "proc_limit": -1
+        },
+        {
+            "tag": "StandardCheck",
+            "check_script": "standard-trusted",
+            "run_script": "standard",
+            "compare_script": "diff-all",
+            "is_random": false,
+            "testcase_id": 0,
+            "depends_on": 0,
+            "depends_cond": "ACCEPTED",
+            "memory_limit": 262144,
+            "time_limit": 1000,
+            "file_limit": 524288,
+            "proc_limit": -1,
+            "actions": [
+                {
+                    "type": "read",
+                    "action": "text",
+                    "tag": "stdout",
+                    "path": "$RUNDIR/testdata.out"
+                }
+            ]
+        }
+    ],
+    "test_data": [
+        {
+            "inputs": [
+                {
+                    "type": "text",
+                    "name": "testdata.in",
+                    "text": ""
+                }
+            ],
+            "outputs": []
+        }
+    ],
+    "submission": {
+        "type": "source_code",
+        "language": "cpp",
+        "source_files": [
+            {
+                "name": "1.cpp",
+                "text": "#include<iostream>\n using namespace std;\n int main()\n{cout << \"123\";}",
+                "type": "text"
+            }
+        ],
+        "entry_point": ""
+    }
+}

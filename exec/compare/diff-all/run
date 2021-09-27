@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+# 精确比较脚本
+# 用法：$0 <std.in> <user.out> <std.out>
+#
+# 本运行脚本通过 diff 命令比较程序输出和标准输出
+# 在存在多余空格和空行时会返回 Presentation Error
+
+TESTIN="$1/testdata.in"
+PROGRAM="$2/testdata.out"
+TESTOUT="$3/testdata.out"
+
+diff --strip-trailing-cr --ignore-trailing-space --ignore-space-change --ignore-blank-lines "$PROGRAM" "$TESTOUT" >/dev/null 2>&1
+EXITCODE=$?
+[[ $EXITCODE -gt 1 ]] && exit 1
+[[ $EXITCODE -ne 0 ]] && exit 43
+
+diff --strip-trailing-cr "$PROGRAM" "$TESTOUT" >/dev/null 2>&1
+EXITCODE=$?
+[[ $EXITCODE -gt 1 ]] && exit -1 # diff error
+[[ $EXITCODE -ne 0 ]] && exit 44 # Presentation error
+
+exit 42 # Accepted

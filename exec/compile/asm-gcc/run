@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# x86 汇编编译器脚本
+# 汇编的入口点为 main，可以使用 libc
+#
+# 用法：$0 <dest> <source files...>
+#
+# <dest> 编译生成的可执行文件路径
+# <source files...> 参与编译的源代码
+
+DEST="$1"; shift
+SOURCE_FILES="$1"; shift
+IFS=':' read -ra SOURCE_FILES_SPLITTED <<< "$SOURCE_FILES"
+
+SRC=()
+OBJ=()
+for file in "${SOURCE_FILES_SPLITTED[@]}"; do
+    if [[ "$file" == *.asm ]] || [[ "$file" == *.s ]] || [[ "$file" == *.S ]]; then
+        SRC+=("$file")
+        OBJ+=("$file.o")
+        nasm -felf32 "$file" -o "$file.o"
+    elif [[ "$file" == *.o ]]; then
+        OBJ+=("$file")
+    fi
+done
+
+gcc -m32 -O2 "${OBJ[@]}" "$@" -o "$DEST" -lm -lpthread
+exit $?

@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# C++ 编译器脚本
+#
+# 用法：$0 <dest> <source files...> <extra compile flags...>
+#
+# <dest> 编译生成的可执行文件路径
+# <source files...> 参与编译的源代码
+# <extra compile flags...> 提供给编译器的参数
+
+DEST="$1"; shift
+SOURCE_FILES="$1"; shift
+IFS=':' read -ra SOURCE_FILES_SPLITTED <<< "$SOURCE_FILES"
+
+SOURCE=()
+for file in "${SOURCE_FILES_SPLITTED[@]}"; do
+    if [[ "$file" == *.c* ]]; then
+        SOURCE+=("$file")
+    fi
+done
+
+# 不可以开启 O2，因为 valgrind 无法处理 O2 优化添加的 SSE 指令
+g++ -DONLINE_JUDGE -std=c++2a -Wall -Wextra -I. -o "$DEST" "${SOURCE[@]}" "$@" -lpthread -lm
+exit $?

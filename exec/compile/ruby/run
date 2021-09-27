@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# Ruby 编译脚本
+# 脚本语言仅检查语法错误
+
+DEST="$1" ; shift
+SOURCE_FILES="$1"; shift
+IFS=':' read -ra SOURCE_FILES_SPLITTED <<< "$SOURCE_FILES"
+MAINSOURCE="${ENTRY_POINT:-${SOURCE_FILES_SPLITTED[0]}}"
+
+# Report the entry point, so it can be saved, e.g. for later replay:
+if [ -z "$ENTRY_POINT" ]; then
+	echo "Info: detected entry_point: $MAINSOURCE"
+fi
+
+# Check syntax (prints "Syntax OK" but filtering would obscure the exitcode):
+for i in "${SOURCE_FILES_SPLITTED[@]}" ; do
+	ruby -c "$i"
+	EXITCODE=$?
+	[ "$EXITCODE" -ne 0 ] && exit $EXITCODE
+done
+
+# Write executing script:
+cat > "$DEST" <<EOF
+#!/bin/sh
+# 运行路径不一定是编译目录，因此我们需要切换到编译目录下运行，否则会找不到文件
+if [ "\${0%/*}" != "\$0" ]; then
+	cd "\${0%/*}"
+fi
+
+exec ruby "$MAINSOURCE" "\$@"
+EOF
+
+chmod a+x "$DEST"
+
+exit 0

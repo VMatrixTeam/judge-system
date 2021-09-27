@@ -1,0 +1,130 @@
+#!/bin/bash
+#
+# 静态测试脚本
+#
+# 用法：$0 <datadir> <timelimit> <chrootdir> <workdir> <basedir> <run-uuid> <compile> <run> <compare> <program args> <source files> <assist files>
+#
+# <datadir>      此程序不使用数据
+# <timelimit>    此程序受 SCRIPTTIMELIMIT 时限限制
+# <chrootdir>    子环境
+# <workdir>      程序的工作文件夹，为了保证安全，请务必将运行路径设置
+#                为空文件夹，特别是保证不可以包含标准输出文件
+# <basedir>      程序基于哪些文件夹运行，运行时这些文件夹会通过 overlay mount 到程序的工作文件夹，
+#                即程序可以访问这些文件夹里的文件，多个文件夹用冒号隔开
+# <run-uuid>     运行的 uuid，用于索引运行文件夹位置
+# <compile>      编译程序脚本文件夹，静态测试根据编译脚本进行静态测试
+# <run>          此项将被忽略，此程序不使用运行脚本
+# <compare>      此项将被忽略，此程序不使用比较脚本
+# <source-files> 源文件集，使用 : 隔开，如 a.cpp:b.cpp
+# <assist-files> 头文件集，使用 : 隔开，如 a.hpp:b.hpp
+#
+# 必须包含的环境变量：
+#   RUNGUARD     runguard 的路径
+#   RUNUSER      选手程序运行的账户
+#   RUNGROUP     选手程序运行的账户组
+#
+# 可选环境变量
+#   MEMLIMIT     运行内存限制，单位为 KB
+#   PROCLIMIT    进程数限制
+#   FILELIMIT    文件写入限制，单位为 KB
+#
+# 脚本运行在当前的工作文件夹中，请确保脚本运行在空文件夹中
+
+# 导入比较脚本，功能是初始化日志、处理命令行参数、并对参数进行初步检查，并进入运行文件夹
+. "$JUDGE_UTILS/check_helper.sh"
+
+chmod +x "$RUN_SCRIPT/run"
+
+touch program.meta program.err
+touch compare.meta compare.err
+
+mkdir -m 0777 -p run # 运行的临时文件都在这里
+mkdir -m 0777 -p feedback
+mkdir -m 0755 -p work
+mkdir -m 0777 -p work/judge
+mkdir -m 0777 -p work/feedback
+mkdir -m 0755 -p work/compare
+mkdir -m 0755 -p work/data
+mkdir -m 0777 -p work/run
+mkdir -m 0777 -p ofs
+mkdir -m 0777 -p ofs/merged
+mkdir -m 0777 -p ofs/judge
+mkdir -m 0755 -p merged
+
+cat > runguard_command << EOF
+#!/bin/bash
+. "$JUDGE_UTILS/chroot_setup.sh"
+
+mount -t overlay overlay -olowerdir="$CHROOTDIR",upperdir=work,workdir=ofs/merged merged
+mount --bind -o ro "$COMPILE_SCRIPT" merged/run
+mount --bind -o ro "$DATADIR" merged/data
+mount --bind "feedback" merged/feedback
+EOF
+chmod +x runguard_command
+
+logmsg $LOG_DEBUG "Running static checker $(hostname):$(pwd)"
+
+# 尽管 oclint 是安全的，为了统一环境，还是挂载到 chroot 执行！
+runcheck $GAINROOT "$RUNGUARD" ${DEBUG:+-v} $CPUSET_OPT $MEMLIMIT_OPT $FILELIMIT_OPT $PROCLIMIT_OPT $RUNNETNS_OPT \
+    --preexecute "./runguard_command" \
+    --root merged \
+    --work /judge \
+    --user "$RUNUSER" \
+    --group "$RUNGROUP" \
+    --no-core-dumps \
+    "$OPTTIME" "$TIMELIMIT" \
+    --standard-error-file program.err \
+    --out-meta program.meta -- \
+    /run/static "$WORKDIR" /feedback "$SOURCE_FILES" "$ASSIST_FILES"
+
+# 当前文件夹下还剩下 program.meta, program.err, system.out 供评测客户端检查
+# 当前文件夹下由评测客户端删除
+
+# 检查是否编译器出错/runguard 崩溃
+if [ ! -s program.meta ]; then
+    echo "Runguard exited with code $exitcode and 'program.meta' is empty, it likely crashed."
+    cleanexit ${E_INTERNAL_ERROR:--1}
+fi
+
+if grep -E '^internal-error: .+$' program.meta >/dev/null 2>&1; then
+    echo "Internal Error"
+    cleanexit ${E_INTERNAL_ERROR:-1}
+fi
+
+echo "Checking program run status"
+cat program.meta
+read_metadata program.meta
+
+if grep '^time-result: .*timelimit' program.meta >/dev/null 2>&1; then
+    echo "Time Limit Exceeded"
+    echo "$resource_usage"
+    cleanexit ${E_TIME_LIMIT:-1}
+fi
+
+if grep -E '^output-truncated: ([a-z]+,)*stdout(,[a-z]+)*' program.meta >/dev/null 2>&1; then
+    echo "Output Limit Exceeded"
+    echo "$resource_usage"
+    cleanexit ${E_OUTPUT_LIMIT:-1}
+fi
+
+case $exitcode in
+    $RESULT_AC)
+        echo "Accepted"
+        echo "$resource_usage"
+        cleanexit ${E_ACCEPTED:-1}
+        ;;
+    $RESULT_WA)
+        echo "Wrong Answer"
+        echo "$resource_usage"
+        cleanexit ${E_WRONG_ANSWER:-1}
+        ;;
+    $RESULT_PC)
+        echo "Partial Correct"
+        echo "$resource_usage"
+        cleanexit ${E_PARTIAL_CORRECT:-1}
+        ;;
+    *)
+        echo "Comparing failed with exitcode $exitcode"
+        cleanexit ${E_INTERNAL_ERROR:-1}
+        ;;
+esac

@@ -1,0 +1,16 @@
+[Unit]
+Description=matrix-judge-system-4.0
+
+[Service]
+WorkingDirectory=/var/lib/judge
+Type=simple
+EnvironmentFile=/etc/judge/env.conf
+ExecStart=/usr/bin/judge-system --enable /etc/judge --cores 0-9
+Restart=on-failure
+User=root
+Group=root
+LimitCORE=infinity
+LimitNOFILE=1000000
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,21 @@
+{
+	"type": "forth",
+	"category": "matrix",
+	"submissionQueue": {
+		"uri": "amqp://matrix:password@192.168.1.1:5672",
+		"queue": "matrix-judge-request",
+		"exchange": "matrix-judge-request-exchange",
+		"exchange_type": "topic",
+		"routing_key": ""
+	},
+	"reportQueue": {
+		"uri": "amqp://matrix:password@192.168.1.1:5672",
+		"queue": "matrix-judge-result",
+		"exchange": "matrix-judge-result-exchange",
+		"exchange_type": "topic",
+		"routing_key": ""
+	},
+	"systemConfig": {
+		"maxReportIOSize": 10240
+	}
+}

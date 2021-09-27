@@ -1,0 +1,18 @@
+[submodule "ext/SimpleAmqpClient"]
+	path = ext/SimpleAmqpClient
+	url = https://github.com/alanxz/SimpleAmqpClient
+[submodule "ext/googletest"]
+	path = ext/googletest
+	url = https://github.com/google/googletest
+[submodule "ext/fmt"]
+	path = ext/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "ext/prometheus-cpp"]
+	path = ext/prometheus-cpp
+	url = https://github.com/jupp0r/prometheus-cpp
+[submodule "ext/cpr"]
+	path = ext/cpr
+	url = https://github.com/whoshuu/cpr
+[submodule "ext/rabbitmq-c"]
+	path = ext/rabbitmq-c
+	url = https://github.com/alanxz/rabbitmq-c

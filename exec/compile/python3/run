@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# Python 3 编译器脚本（CPython）
+# 脚本语言仅检查语法错误
+
+DEST="$1" ; shift
+SOURCE_FILES="$1"; shift
+IFS=':' read -ra SOURCE_FILES_SPLITTED <<< "$SOURCE_FILES"
+MAINSOURCE="${ENTRY_POINT:-${SOURCE_FILES_SPLITTED[0]}}"
+
+# 当未开启 set -e 时，通过使用该函数来保证命令运行正确
+expectsuccess ()
+{
+    set +e
+    exitcode=0
+    "$@"
+    exitcode=$?
+    [ "$exitcode" -ne 0 ] && exit $exitcode
+    set -e
+}
+
+# 检查 python 代码的语法，以便抛出 CE
+expectsuccess python3 -m py_compile "${SOURCE_FILES_SPLITTED[@]}"
+rm -f -- *.pyc
+
+if [ ! -r "$MAINSOURCE" ]; then
+    echo "Entry point '$MAINSOURCE' is not readable, falling to '${SOURCE_FILES_SPLITTED[0]}'"
+    MAINSOURCE="${SOURCE_FILES_SPLITTED[0]}"
+fi
+
+cat > "$DEST" <<EOF
+#!/bin/sh
+# 运行路径不一定是编译目录，因此我们需要切换到编译目录下运行，否则会找不到文件
+if [ "\${0%/*}" != "\$0" ]; then
+	cd "\${0%/*}"
+fi
+
+# 这里不编译 python 代码
+exec python3 "$MAINSOURCE" "\$@"
+EOF
+
+chmod a+x "$DEST"
+exit 0

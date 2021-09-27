@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# Fortran 编译脚本
+
+DEST="$1" ; shift
+SOURCE_FILES="$1"; shift
+IFS=':' read -ra SOURCE_FILES_SPLITTED <<< "$SOURCE_FILES"
+
+gfortran -x f95 -Wall -O2 -cpp -DONLINE_JUDGE -o "$DEST" "${SOURCE_FILES_SPLITTED[@]}" "$@"
+exitcode=$?
+
+# clean created files:
+rm -f "$DEST.o"
+
+exit $exitcode
