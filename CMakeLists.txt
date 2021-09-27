@@ -82,6 +82,7 @@ file(GLOB ENTRY_FILE "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/fmt")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/rabbitmq-c")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/SimpleAmqpClient")
+add_dependencies(SimpleAmqpClient rabbitmq)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/prometheus-cpp")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/cpr")
 
