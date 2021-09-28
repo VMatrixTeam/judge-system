@@ -29,7 +29,13 @@ list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib"
 if("${isSystemDir}" STREQUAL "-1")
     set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif("${isSystemDir}" STREQUAL "-1")
+IF(WIN32)
+    SET(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+ELSE(WIN32)
+    SET(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+ENDIF(WIN32)
 
+SET(INSTALL_PLUGINDIR ${CMAKE_CURRENT_BINARY_DIR})
 add_definitions(-DORMPP_ENABLE_MYSQL -DBOOST_STACKTRACE_USE_ADDR2LINE)
 
 #  CMake control options
@@ -42,18 +48,16 @@ option(BUILD_ENTRY "Build the Judge System main entry" OFF)
 
 # Necessary libraries
 ################################################################################
-find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 find_package(Boost 1.65 REQUIRED COMPONENTS log_setup log program_options thread)
 find_package(Protobuf REQUIRED)
-
-pkg_check_modules(MySQL REQUIRED IMPORTED_TARGET mysqlclient)
 
 # header directories
 ################################################################################
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ext/cpr/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ext/fmt/include")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ext/mariadb-connector-c/include")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ext/SimpleAmqpClient/src")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ext/prometheus-cpp/pull/include")
 include_directories("${Protobuf_INCLUDE_DIRS}")
@@ -91,6 +95,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/fmt")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/SimpleAmqpClient")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/prometheus-cpp")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/cpr")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/mariadb-connector-c")
 
 if (BUILD_UNIT_TEST OR BUILD_GTEST_MODULE_TEST)
   if (NOT TARGET gtest)
@@ -128,7 +133,7 @@ if (BUILD_UNIT_TEST)
     cpr
     stdc++fs
 
-    PkgConfig::MySQL
+    mariadbclient
 
     ${Boost_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
@@ -167,19 +172,20 @@ if (WITH_ADDRESS_SANITIZER)
   target_link_options(${MATRIX_JUDGE_TARGET} PUBLIC -fno-omit-frame-pointer PUBLIC -fsanitize=address)
 endif ()
 
-target_link_libraries(${MATRIX_JUDGE_TARGET}
+target_link_libraries(${MATRIX_JUDGE_TARGET} 
   PRIVATE fmt
   PRIVATE SimpleAmqpClient
   PRIVATE boost_stacktrace_addr2line
   PRIVATE dl
   PRIVATE stdc++fs
   PRIVATE prometheus-cpp::pull
-  PRIVATE PkgConfig::MySQL
+  PRIVATE mariadbclient
   PRIVATE cpr  
 
   PRIVATE ${Boost_LIBRARIES}
 
   PRIVATE ${CMAKE_THREAD_LIBS_INIT}
+  -static
 )
 
 install(TARGETS ${MATRIX_JUDGE_TARGET} DESTINATION bin)

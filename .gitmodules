@@ -16,3 +16,6 @@
 [submodule "ext/rabbitmq-c"]
 	path = ext/rabbitmq-c
 	url = https://github.com/alanxz/rabbitmq-c
+[submodule "ext/mariadb-connector-c"]
+	path = ext/mariadb-connector-c
+	url = https://github.com/mariadb-corporation/mariadb-connector-c
