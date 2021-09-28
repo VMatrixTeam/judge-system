@@ -13,6 +13,7 @@ User=root
 Group=root
 LimitCORE=infinity
 LimitNOFILE=1000000
+TimeoutStopSec=2
 
 [Install]
 WantedBy=multi-user.target
