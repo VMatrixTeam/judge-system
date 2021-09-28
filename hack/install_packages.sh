@@ -3,9 +3,9 @@ apt update
 apt install $1 \
   pylint \
   pylint3 \
-  libcgroup-dev \
-  clang \
-  libclang-dev \
+  gperf \
+  bison \
+  flex \
   libcurl4-openssl-dev \
   curl \
   make \
@@ -15,9 +15,9 @@ apt install $1 \
   libboost-all-dev \
   cmake \
   libgtest-dev \
-  libmariadb-dev-compat \
-  libseccomp-dev \
   libprotobuf-dev \
   ninja-build \
   git \
-  pkg-config
+  pkg-config \
+  gcc \
+  g++
