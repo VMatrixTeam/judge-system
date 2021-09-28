@@ -19,6 +19,9 @@ jobs:
 
       - name: Build Judge System
         run: hack/build.sh
+      
+      - name: Build debian package
+        run: cd build && ninja package
 #       - name: Copy Binaries
 #         run: |
 #             mkdir -p bin runguard/bin

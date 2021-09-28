@@ -1,0 +1,17 @@
+#!/bin/bash
+service_name=@SERVICE_NAME@
+DEB_INSTALL_PREFIX=@CMAKE_INSTALL_PREFIX@
+
+
+mkdir -p /etc/judge /var/lib/judge
+pushd ${DEB_INSTALL_PREFIX}
+source ${DEB_INSTALL_PREFIX}/prepare.sh
+popd
+
+install -m644 ${DEB_INSTALL_PREFIX}/$service_name /etc/systemd/system/$service_name
+install -m644 ${DEB_INSTALL_PREFIX}/forth.json /etc/judge/forth.json
+install -m644 ${DEB_INSTALL_PREFIX}/env.conf /etc/judge/env.conf
+
+systemctl daemon-reload || true
+systemctl enable $service_name || true
+systemctl start $service_name

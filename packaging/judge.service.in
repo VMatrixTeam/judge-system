@@ -1,0 +1,17 @@
+[Unit]
+Description=matrix-judge-system-4.0
+
+[Service]
+WorkingDirectory=/var/lib/judge
+Type=simple
+EnvironmentFile=/etc/judge/env.conf
+ExecStart=bash @RUN_SCRIPT_PATH@ --enable-4 /etc/judge/forth.json
+Restart=on-failure
+User=root
+Group=root
+LimitCORE=infinity
+LimitNOFILE=1000000
+TimeoutStopSec=2
+
+[Install]
+WantedBy=multi-user.target
