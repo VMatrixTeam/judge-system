@@ -185,6 +185,7 @@ target_link_libraries(${MATRIX_JUDGE_TARGET}
   PRIVATE ${Boost_LIBRARIES}
 
   PRIVATE ${CMAKE_THREAD_LIBS_INIT}
+  -static
 )
 
 install(TARGETS ${MATRIX_JUDGE_TARGET} DESTINATION bin)
