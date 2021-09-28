@@ -31,7 +31,7 @@ if [ -z "$WORKDIR" ]; then
     WORKDIR="/tmp/judge"
 fi
 
-mkdir -p /var/log/judge-system
+mkdir -p /var/log/judge
 mkdir -p "$WORKDIR/cache"
 mkdir -p "$WORKDIR/run"
 
@@ -47,10 +47,10 @@ if [ -z "$CORES" ]; then
     export CORES=$(python3 $DIR/script/core_filter.py)
 fi
 
-export GLOG_log_dir=/var/log/judge-system
+export GLOG_log_dir=/var/log/judge
 export GLOG_alsologtostderr=1
 export GLOG_colorlogtostderr=1
-export BOOST_log_dir=/var/log/judge-system
+export BOOST_log_dir=/var/log/judge
 export ELASTIC_APM_TRANSPORT_CLASS="elasticapm.transport.http.Transport"
 export CACHEDIR="$WORKDIR/cache"
 export RUNDIR="$WORKDIR/run"

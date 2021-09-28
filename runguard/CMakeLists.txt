@@ -19,7 +19,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 # header directories
 ################################################################################
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../ext/fmt/include")
 ################################################################################
 
 # source files
@@ -43,7 +42,9 @@ pkg_check_modules(Seccomp REQUIRED IMPORTED_TARGET libseccomp)
 add_executable(${BUILD_TARGET} ${SOURCE_FILES} ${ENTRY_FILE})
 set_target_properties(${BUILD_TARGET}
   PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin"
   CXX_STANDARD 17
 )
 target_link_libraries(${BUILD_TARGET}
@@ -55,4 +56,5 @@ target_link_libraries(${BUILD_TARGET}
   ${Boost_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
 )
-install(TARGETS ${BUILD_TARGET} RUNTIME DESTINATION bin)
+
+install(TARGETS ${BUILD_TARGET} RUNTIME DESTINATION runguard/bin)

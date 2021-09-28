@@ -1,7 +1,5 @@
 [Unit]
 Description=matrix-judge-system-4.0
-Requires=create-judge-cgroups.service
-After=create-judge-cgroups.service
 
 [Service]
 WorkingDirectory=/var/lib/judge
