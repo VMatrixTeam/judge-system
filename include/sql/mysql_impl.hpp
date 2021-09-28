@@ -1,7 +1,7 @@
 #pragma once
 
 extern "C" {
-#include <mysql/mysql.h>
+#include <mysql.h>
 }
 
 int isolate_mysql_fd(MYSQL *con);
