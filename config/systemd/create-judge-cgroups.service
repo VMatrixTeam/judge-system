@@ -1,0 +1,12 @@
+[Unit]
+Description=Setup judge cgroups
+
+[Service]
+Type=oneshot
+ExecStart=/opt/judge-system/exec/create_cgroups.sh judge
+StandardOutput=journal
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
