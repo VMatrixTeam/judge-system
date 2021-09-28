@@ -1,4 +1,13 @@
 #!/bin/bash
+
+install_file_if_not_exists() {
+    local src=$1
+    local tgt=$2
+    if [ ! -f $tgt ]; then 
+        install -m644 $src $tgt
+    fi
+}
+
 service_name=@SERVICE_NAME@
 DEB_INSTALL_PREFIX=@CMAKE_INSTALL_PREFIX@
 
@@ -8,9 +17,10 @@ pushd ${DEB_INSTALL_PREFIX}
 source ${DEB_INSTALL_PREFIX}/prepare.sh
 popd
 
-install -m644 ${DEB_INSTALL_PREFIX}/$service_name /etc/systemd/system/$service_name
-install -m644 ${DEB_INSTALL_PREFIX}/forth.json /etc/judge/forth.json
-install -m644 ${DEB_INSTALL_PREFIX}/env.conf /etc/judge/env.conf
+# Install config files if not exists
+install_file_if_not_exists ${DEB_INSTALL_PREFIX}/$service_name /etc/systemd/system/$service_name
+install_file_if_not_exists -m644 ${DEB_INSTALL_PREFIX}/forth.json /etc/judge/forth.json
+install_file_if_not_exists -m644 ${DEB_INSTALL_PREFIX}/env.conf /etc/judge/env.conf
 
 systemctl daemon-reload || true
 systemctl enable $service_name || true

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+service_name=@SERVICE_NAME@
+
+systemctl stop $service_name
+systemctl disable $service_name
