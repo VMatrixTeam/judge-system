@@ -19,7 +19,7 @@ for file in "${SOURCE_FILES_SPLITTED[@]}"; do
     fi
 done
 
-SANITIZERS=(-fsanitize=address -fsanitize=undefined -fno-sanitize-recover=all -fsanitize=float-divide-by-zero -fsanitize=float-cast-overflow -fno-sanitize=null -fno-sanitize=alignment)
+SANITIZERS=(-fsanitize=address -fsanitize=undefined -fno-sanitize-recover=all -fsanitize=float-divide-by-zero -fsanitize=float-cast-overflow -fno-sanitize=null -fno-sanitize=alignment -fno-omit-frame-pointer -g)
 gcc -O2 -DONLINE_JUDGE -std=c17 -Wall -Wextra -I. -o "$DEST" "${SOURCE[@]}" "$@" -lm -lpthread -lrt
 gcc ${SANITIZERS[@]} -O2 -DONLINE_JUDGE -std=c17 -Wall -Wextra -I. -o "$DEST-asan" "${SOURCE[@]}" "$@" -lm -lpthread -lrt
 exit $?
