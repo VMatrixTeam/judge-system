@@ -107,12 +107,13 @@ void sigintHandler(int signum) {
         LOG_ERROR << "Received SIGTERM, stopping workers";
     }
 
-    if (sigint == 0)
+    if (sigint == 0) {
         judge::stop_workers();
-    else if (sigint == 1)
+    } else if (sigint == 1) {
         judge::stop_judging();
-    else
+    } else {
         exit(130);
+    }
 
     sigint++;
 }

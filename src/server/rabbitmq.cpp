@@ -14,11 +14,15 @@ rabbitmq_channel::rabbitmq_channel(amqp &amqp, bool write) : queue(amqp), write(
     connect();
     if (write) {
         std::thread message_write_thread([this]() {
-            prctl(PR_SET_NAME, "rabbitmq write loop", 0, 0, 0);
+            prctl(PR_SET_NAME, "mq write loop", 0, 0, 0);
             this->message_write_loop();
         });
         message_write_thread.detach();
     }
+}
+
+rabbitmq_channel::~rabbitmq_channel() {
+    server_shutdown = true;
 }
 
 void rabbitmq_channel::connect() {
@@ -59,8 +63,12 @@ bool rabbitmq_channel::fetch(rabbitmq_envelope &envelope, int timeout) {
 
 void rabbitmq_channel::message_write_loop() {
     LOG_DEBUG << "Start message write loop for exchange: " << queue.exchange;
-    while (true) {
-        auto message = write_queue.pop();
+    pending_message message;
+    while (!server_shutdown) {
+        if (!write_queue.try_pop(message)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            continue;
+        };
         AmqpClient::BasicMessage::ptr_t msg = AmqpClient::BasicMessage::Create(message.message);
         for (int retry = 0;; retry++) {
             try {
@@ -75,6 +83,7 @@ void rabbitmq_channel::message_write_loop() {
             }
         }
     }
+    LOG_DEBUG << "server shutdown, exiting message write loop";
 }
 
 void rabbitmq_channel::report(const string &message) {

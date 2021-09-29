@@ -354,24 +354,24 @@ static judge_task_result judge_impl(const message::client_task &client_task, pro
     return result;
 }
 
-static void compile(judge::program *program, const filesystem::path &workdir, const string &execcpuset, const executable_manager &exec_mgr, const program_limit &limit, judge_task_result &task_result, bool executable) {
+static void compile(judge::program &program, const filesystem::path &workdir, const string &execcpuset, const executable_manager &exec_mgr, const program_limit &limit, judge_task_result &task_result, bool executable) {
     try {
-        // 将程序存放在 workdir 下，program->fetch 会自行组织 workdir 内的文件存储结构
+        // 将程序存放在 workdir 下，program.fetch 会自行组织 workdir 内的文件存储结构
         // 并编译程序，编译需要的运行环境就是全局的 CHROOT_DIR，这样可以获得比较完整的环境
-        program->fetch(execcpuset, workdir, CHROOT_DIR, exec_mgr, limit);
+        program.fetch(execcpuset, workdir, CHROOT_DIR, exec_mgr, limit);
         task_result.status = status::ACCEPTED;
     } catch (executable_compilation_error &ex) {
         task_result.status = status::EXECUTABLE_COMPILATION_ERROR;
         string what = ex.what();
-        task_result.report = program->get_compilation_log(workdir);
-        task_result.error_log = (what.empty() ? "" : what + "\n") + program->get_compilation_details(workdir);
+        task_result.report = program.get_compilation_log(workdir);
+        task_result.error_log = (what.empty() ? "" : what + "\n") + program.get_compilation_details(workdir);
     } catch (compilation_error &ex) {
         LOG_DEBUG << "Compilation_error.";  // debug
 
         task_result.status = executable ? status::EXECUTABLE_COMPILATION_ERROR : status::COMPILATION_ERROR;
         string what = ex.what();
-        task_result.report = program->get_compilation_log(workdir);
-        task_result.error_log = (what.empty() ? "" : what + "\n") + program->get_compilation_details(workdir);
+        task_result.report = program.get_compilation_log(workdir);
+        task_result.error_log = (what.empty() ? "" : what + "\n") + program.get_compilation_details(workdir);
     } catch (exception &ex) {
         task_result.status = status::SYSTEM_ERROR;
         task_result.error_log = ex.what();
@@ -401,7 +401,7 @@ static judge_task_result compile(const message::client_task &client_task, progra
 
         filesystem::path workdir = get_work_dir(submit);
         result.run_dir = workdir / "compile";
-        compile(submit.submission.get(), workdir, execcpuset, exec_mgr, task, result, false);
+        compile(*submit.submission, workdir, execcpuset, exec_mgr, task, result, false);
 
         auto metadata = read_runguard_result(result.run_dir / "compile.meta");
         result.run_time = metadata.wall_time;
@@ -414,7 +414,7 @@ static judge_task_result compile(const message::client_task &client_task, progra
         LOG_DEBUG << "Compile random";
 
         filesystem::path randomdir = cachedir / "random";
-        compile(submit.random.get(), randomdir, execcpuset, exec_mgr, task, result, true);
+        compile(*submit.random, randomdir, execcpuset, exec_mgr, task, result, true);
         if (result.status == status::COMPILATION_ERROR)
             result.status = status::EXECUTABLE_COMPILATION_ERROR;
         if (result.status != status::ACCEPTED) return result;
@@ -425,7 +425,7 @@ static judge_task_result compile(const message::client_task &client_task, progra
         LOG_DEBUG << "Compile standard";
 
         filesystem::path standarddir = cachedir / "standard";
-        compile(submit.standard.get(), standarddir, execcpuset, exec_mgr, task, result, true);
+        compile(*submit.standard, standarddir, execcpuset, exec_mgr, task, result, true);
         if (result.status == status::COMPILATION_ERROR)
             result.status = status::EXECUTABLE_COMPILATION_ERROR;
         if (result.status != status::ACCEPTED) return result;
@@ -436,7 +436,7 @@ static judge_task_result compile(const message::client_task &client_task, progra
         LOG_DEBUG << "Compile compare";
 
         filesystem::path comparedir = cachedir / "compare";
-        compile(submit.compare.get(), comparedir, execcpuset, exec_mgr, task, result, true);
+        compile(*submit.compare, comparedir, execcpuset, exec_mgr, task, result, true);
         if (result.status == status::COMPILATION_ERROR)
             result.status = status::EXECUTABLE_COMPILATION_ERROR;
         if (result.status != status::ACCEPTED) return result;

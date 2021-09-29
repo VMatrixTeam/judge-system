@@ -201,8 +201,9 @@ static void worker_loop(size_t core_id, concurrent_queue<message::client_task> &
                         break;
                     }
 
-                    if (!fetch_submission(core_id, task_queue))
-                        usleep(10 * 1000);  // 10ms，这里必须等待，不可以忙等，否则会挤占返回评测结果的执行权
+                    if (!fetch_submission(core_id, task_queue)) {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(10));  // 10ms，这里必须等待，不可以忙等，否则会挤占返回评测结果的执行权
+                    }
                     continue;
                 }
             }

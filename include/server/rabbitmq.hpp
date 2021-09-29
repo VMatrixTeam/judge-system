@@ -1,11 +1,13 @@
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <mutex>
 #include <shared_mutex>
+
 #include "SimpleAmqpClient/SimpleAmqpClient.h"
-#include "server/config.hpp"
 #include "common/concurrent_queue.hpp"
+#include "server/config.hpp"
 
 namespace judge::server {
 
@@ -25,10 +27,16 @@ private:
     AmqpClient::Envelope::ptr_t envelope;
 };
 
-struct rabbitmq_channel {
+class rabbitmq_channel {
+public:
+    struct pending_message {
+        std::string message;
+        std::string routing_key;
+    };
     using envelope_type = rabbitmq_envelope;
-    
+
     rabbitmq_channel(amqp &amqp, bool write = false);
+    ~rabbitmq_channel();
 
     bool fetch(rabbitmq_envelope &envelope, int timeout = -1);
     void ack(const rabbitmq_envelope &envelope);
@@ -47,11 +55,6 @@ struct rabbitmq_channel {
     void report(const std::string &message, const std::string &routing_key);
 
 private:
-    struct pending_message {
-        const std::string message;
-        const std::string routing_key;
-    };
-
     void connect();
     void try_connect(bool force);
     void message_write_loop();
@@ -59,8 +62,9 @@ private:
     AmqpClient::Channel::ptr_t channel;
     std::string tag;
     judge::server::amqp queue;
-    bool write;
-    
+    bool write = false;
+    volatile bool server_shutdown = false;
+
     judge::concurrent_queue<pending_message> write_queue;
 };
 
