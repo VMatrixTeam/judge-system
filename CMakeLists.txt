@@ -209,7 +209,7 @@ install(DIRECTORY exec/ DESTINATION exec FILE_PERMISSIONS OWNER_EXECUTE OWNER_WR
 install(PROGRAMS run.sh DESTINATION ./ COMPONENT runtime)
 install(PROGRAMS prepare.sh DESTINATION ./ COMPONENT runtime)
 install(FILES ${SERVICE_OUT} DESTINATION ./ COMPONENT runtime)
-install(FILES ${CMAKE_CURRENT_LIST_DIR}/config/production/forth.json DESTINATION ./ COMPONENT runtime)
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/config/example/forth.json DESTINATION ./ COMPONENT runtime)
 install(FILES ${CMAKE_CURRENT_LIST_DIR}/config/systemd/env.conf DESTINATION ./ COMPONENT runtime)
 
 set(CPACK_GENERATOR "DEB")
