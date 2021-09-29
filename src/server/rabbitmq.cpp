@@ -83,7 +83,6 @@ void rabbitmq_channel::message_write_loop() {
             }
         }
     }
-    LOG_DEBUG << "server shutdown, exiting message write loop";
 }
 
 void rabbitmq_channel::report(const string &message) {
