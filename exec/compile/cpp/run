@@ -19,6 +19,7 @@ for file in "${SOURCE_FILES_SPLITTED[@]}"; do
     fi
 done
 
-# 不可以开启 O2，因为 valgrind 无法处理 O2 优化添加的 SSE 指令
-g++ -DONLINE_JUDGE -std=c++2a -Wall -Wextra -I. -o "$DEST" "${SOURCE[@]}" "$@" -lpthread -lm
+SANITIZERS=(-fsanitize=address -fsanitize=undefined -fno-sanitize-recover=all -fsanitize=float-divide-by-zero -fsanitize=float-cast-overflow -fno-sanitize=null -fno-sanitize=alignment)
+g++ -O2 -DONLINE_JUDGE -std=c++2a -Wall -Wextra -I. -o "$DEST" "${SOURCE[@]}" "$@" -lpthread -lm
+g++ ${SANITIZERS[@]} -O2 -DONLINE_JUDGE -std=c++2a -Wall -Wextra -I. -o "$DEST-asan" "${SOURCE[@]}" "$@" -lpthread -lm
 exit $?

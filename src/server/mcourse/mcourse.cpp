@@ -360,7 +360,7 @@ void from_json_programming(const json &config, const json &detail, judge_request
         testcase.depends_on = 0;  // 依赖编译任务
         testcase.depends_cond = judge_task::dependency_condition::ACCEPTED;
         testcase.tag = RANDOM_CHECK_TYPE;
-        testcase.check_script = "standard-trusted";
+        testcase.check_script = "standard";
         testcase.run_script = "standard";
         testcase.compare_script = "diff-ign-trailing";
         testcase.is_random = true;
@@ -385,7 +385,7 @@ void from_json_programming(const json &config, const json &detail, judge_request
         testcase.depends_on = 0;  // 依赖编译任务
         testcase.depends_cond = judge_task::dependency_condition::ACCEPTED;
         testcase.tag = STANDARD_CHECK_TYPE;
-        testcase.check_script = "standard-trusted";
+        testcase.check_script = "standard";
         testcase.run_script = "standard";
         testcase.compare_script = "diff-ign-trailing";
         testcase.is_random = false;

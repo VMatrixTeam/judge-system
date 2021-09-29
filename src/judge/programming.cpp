@@ -117,6 +117,7 @@ static judge_task_result judge_impl(const message::client_task &client_task, pro
     string taskname = task.tag;
     boost::remove_if(taskname, boost::is_any_of("/\\"));
     boost::replace_all(taskname, " ", "_");
+    boost::replace_all(taskname, ":", "_");
     if (taskname.empty())
         taskname = taskid + "-" + boost::lexical_cast<string>(boost::uuids::random_generator()());
     else
@@ -486,10 +487,13 @@ static void verify_timeliness(programming_submission &submit) {
 
 bool programming_judger::verify(submission &submit) const {
     auto sub = dynamic_cast<programming_submission *>(&submit);
-    if (!sub) return false;
+    if (!sub) {
+        LOG_DEBUG << "dynamic_cast failed";
+        return false;
+    }
 
     // 检查 judge_server 获取的 sub 是否包含编译任务，且确保至多一个编译任务
-    bool has_compile_case = false, has_random_case = false;
+    bool has_random_case = false;
     for (size_t i = 0; i < sub->judge_tasks.size(); ++i) {
         auto &judge_task = sub->judge_tasks[i];
 
@@ -498,38 +502,33 @@ bool programming_judger::verify(submission &submit) const {
             return false;
         }
 
-        if (judge_task.check_script == "compile") {
-            if (!has_compile_case) {
-                has_compile_case = true;
-                if (judge_task.depends_on >= 0) {
-                    LOG_WARN << "Submission from [" << sub->category << "-" << sub->prob_id << "-" << sub->sub_id << "] has non-independent compilation task.";
-                    return false;
-                }
-            } else {
-                LOG_WARN << "Submission from [" << sub->category << "-" << sub->prob_id << "-" << sub->sub_id << "] has multiple compilation subtasks.";
-                return false;
-            }
-        }
+        // 对于 C++ 内存检查，由于需要单独编译一个带 AddressSanitizer 的二进制
+        // 因此允许这个编译任务有依赖，并且允许提交中有多个编译任务
 
         if (judge_task.is_random) {
             has_random_case = true;
         }
     }
 
-    if (!sub->submission) return false;
+    if (!sub->submission) {
+        LOG_DEBUG << "missing submission";
+        return false;
+    }
 
     if (has_random_case && (!sub->standard || !sub->random)) {
         // 随机测试要求提供标准程序和随机数据生成器
+        LOG_DEBUG << "has random case but missing standard or random";
         return false;
     }
 
     // 检查是否存在可以直接评测的测试点，如果不存在则直接返回
     bool sent_testcase = false;
-    for (size_t i = 0; i < sub->judge_tasks.size(); ++i)
+    for (size_t i = 0; i < sub->judge_tasks.size(); ++i) {
         if (sub->judge_tasks[i].depends_on < 0) {
             sent_testcase = true;
             break;
         }
+    }
 
     if (!sent_testcase) {
         // 如果不存在评测任务，直接返回
@@ -580,7 +579,6 @@ bool programming_judger::distribute(concurrent_queue<message::client_task> &task
     }
     return true;
 }
-
 
 static void call_monitor(function<void(monitor &)> callback) {
     try {

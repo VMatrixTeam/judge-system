@@ -95,4 +95,4 @@ target_link_libraries(${BUILD_TARGET}
   -static
 )
 
-install(TARGETS ${BUILD_TARGET} RUNTIME DESTINATION runguard/bin)
+install(TARGETS ${BUILD_TARGET} RUNTIME DESTINATION runguard/bin COMPONENT runtime)

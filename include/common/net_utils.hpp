@@ -12,7 +12,7 @@ namespace judge::net {
  * @param file_connect_timeout 最大限制请求时间，单位为秒
  * @return post 请求响应内容,必须是 json
  */
-std::string post_json(const std::string &url, const nlohmann::json &post, const double file_connect_timeout = 1.0);
+std::string post_json(const std::string &url, const nlohmann::json &post, const double file_connect_timeout = 5.0);
 
 /**
  * @brief 发送 GET 请求
@@ -21,7 +21,7 @@ std::string post_json(const std::string &url, const nlohmann::json &post, const 
  * @param file_connect_timeout 最大限制请求时间，单位为秒
  * @return GET 请求响应内容
  */
-std::string get(const std::string &url, const std::map<std::string, std::string> &params, const double file_connect_timeout = 1.0);
+std::string get(const std::string &url, const std::map<std::string, std::string> &params, const double file_connect_timeout = 5.0);
 
 /**
  * @brief 发送 POST 请求上传文件
@@ -30,7 +30,7 @@ std::string get(const std::string &url, const std::map<std::string, std::string>
  * @param file_connect_timeout 最大限制请求时间，单位为秒
  * @return POST 响应内容
  */
-void upload_file_string(const std::string &url, const std::string &content, const double file_connect_timeout = 1.0);
+void upload_file_string(const std::string &url, const std::string &content, const double file_connect_timeout = 5.0);
 
 /**
  * @brief 将文件从 url 下载到本地路径 path
@@ -38,7 +38,7 @@ void upload_file_string(const std::string &url, const std::string &content, cons
  * @param path 下载文件的保存路径
  * @param file_connect_timeout 最大限制请求时间，单位为秒
  */
-void download_file(const std::string &url, const std::filesystem::path &path, const double file_connect_timeout = 1.0);
+void download_file(const std::string &url, const std::filesystem::path &path, const double file_connect_timeout = 5.0);
 
 /**
  * @brief 将文件上传到 url
@@ -46,6 +46,6 @@ void download_file(const std::string &url, const std::filesystem::path &path, co
  * @param path 要上传的文件路径
  * @param file_connect_timeout 最大限制请求时间，单位为秒
  */
-void upload_file(const std::string &url, const std::filesystem::path &path, const double file_connect_timeout = 1.0);
+void upload_file(const std::string &url, const std::filesystem::path &path, const double file_connect_timeout = 5.0);
 
 }  // namespace judge::net

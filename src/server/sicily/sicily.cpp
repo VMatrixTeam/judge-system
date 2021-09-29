@@ -183,7 +183,7 @@ static bool fetch_queue(configuration &sicily, programming_submission &submit) {
 
                 // 添加评测任务，sicily 只有标准测试，因此为每个测试数据添加一个标准测试数据组
                 judge_task kase;
-                kase.check_script = spj ? "standard" : "standard-trusted";
+                kase.check_script = spj ? "standard" : "standard";
                 kase.run_script = "standard";
                 kase.compare_script = spj ? "" : "diff-all";
                 kase.is_random = false;

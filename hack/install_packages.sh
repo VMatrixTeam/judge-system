@@ -6,6 +6,7 @@ apt install $1 \
   gperf \
   bison \
   flex \
+  libssl-dev \
   libcurl4-openssl-dev \
   curl \
   make \

@@ -16,4 +16,4 @@ pushd build
 popd
 
 echo "Install path is ${INSTALL_DIR}"
-echo "To install judge-system, run cmake --build build --target install"
+echo "To install judge-system, run cmake -DCOMPONENT=runtime -P build/cmake_install.cmake"

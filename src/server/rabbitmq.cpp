@@ -73,8 +73,8 @@ void rabbitmq_channel::message_write_loop() {
         for (int retry = 0;; retry++) {
             try {
                 LOG_DEBUG << "report: sending message to exchange:" << queue.exchange
-                          << ", routing_key=" << queue.routing_key;
-                channel->BasicPublish(queue.exchange, queue.routing_key, msg);
+                          << ", routing_key=" << message.routing_key; // << ", message=" << message.message;
+                channel->BasicPublish(queue.exchange, message.routing_key, msg);
                 break;
             } catch (const std::exception &ex) {
                 LOG_DEBUG << "Sending message failed, retry: " << retry << ", cause: " << ex.what();
@@ -90,7 +90,7 @@ void rabbitmq_channel::report(const string &message) {
 }
 
 void rabbitmq_channel::report(const string &message, const string &routing_key) {
-    write_queue.push({message, queue.routing_key});
+    write_queue.push({message, routing_key});
 }
 
 rabbitmq_envelope::rabbitmq_envelope() {}

@@ -294,6 +294,7 @@ bool configuration::fetch_submission(unique_ptr<submission> &submit) {
             return true;
         } catch (...) {
             envelope.ack();
+
             throw;
         }
     }
@@ -303,7 +304,9 @@ bool configuration::fetch_submission(unique_ptr<submission> &submit) {
 
 void configuration::summarize_invalid(submission &submit) {
     // TODO
-    any_cast<judge::server::rabbitmq_envelope>(submit.envelope).ack();
+    auto &&envelope = any_cast<judge::server::rabbitmq_envelope>(submit.envelope);
+    LOG_DEBUG << "body: " << envelope.body();
+    envelope.ack();
 }
 
 void summarize_programming(configuration &server, programming_submission &submit, bool ack) {

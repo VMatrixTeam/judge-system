@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+import json
+import sys
+import os
+
+'''
+AddressSanitizer, 返回值：
+
+42: 内存测试通过，将返回 Accepted
+1: 内部错误，返回 Compare Error，python 脚本出现未捕获异常时也会返回 1
+43: 内存测试未通过，返回 Wrong Answer
+
+report.txt 格式
+asan 字段用来标识这是一个 AddressSanitizer 输出，前端兼容用
+{
+    "asan": true,
+    "error": "AddressSanitizer 输出"
+}
+'''
+
+if len(sys.argv) != 5:
+    sys.stderr.write('{0}: 4 arguments needed, {1} given\n'.format(sys.argv[0], len(sys.argv) - 1))
+    print("Usage: {0} [stdin] [userout] [stdout] [feedback]".format(sys.argv[0]))
+    sys.exit(2)
+
+stderr_file = open(os.path.join(sys.argv[2], 'asan.out'), 'r')
+result_file = open(os.path.join(sys.argv[4], 'report.txt'), 'w')
+
+try:
+    logs = stderr_file.read()
+    if len(logs) == 0:
+        sys.exit(42)
+    result_file.write(json.dumps({"error": logs, "asan": True}, indent=4))
+    sys.exit(43)
+except Exception as e:
+    sys.stderr.write('Internal error: XML may be malformed\n{0}'.format(xml_file.read()))
+    raise e

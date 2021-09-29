@@ -31,7 +31,7 @@ message ProgramBlankFillingSubmission {}
 
 message JudgeTask {
   /*optional*/ string tag = 1; // 用于标记评测任务用途，会原样在评测报告中返回
-  string check_script = 2; // 检查脚本 id，可能的候选项："compile", "standard", "standard-trusted", "static"
+  string check_script = 2; // 检查脚本 id，可能的候选项："compile", "standard", "static"
   string run_script = 3; // 运行脚本 id，可能的候选项："standard", "gtest", "valgrind"
   string compare_script = 4; // 比较脚本 id，可能的候选项："diff-ign-space", "diff-all", "valgrind", "gtest"
   bool is_random = 5; // 该评测任务是否需要生成随机测试数据。若为真，评测会调用标准程序和随机数据生成器生成数据

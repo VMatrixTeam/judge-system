@@ -19,7 +19,7 @@
         },
         {
             "tag": "StandardCheck",
-            "check_script": "standard-trusted",
+            "check_script": "standard",
             "run_script": "standard",
             "compare_script": "diff-all",
             "is_random": false,
