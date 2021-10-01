@@ -85,10 +85,10 @@ mkdir -p "$RUNDIR"
 chmod a+rwx "$RUNDIR"
 
 mkdir -m 0755 -p "$RUNDIR/work"
-mkdir -m 0777 -p "$RUNDIR/work/judge"
-mkdir -m 0777 -p "$RUNDIR/ofs"
-mkdir -m 0777 -p "$RUNDIR/ofs/merged"
-mkdir -m 0755 -p "$RUNDIR/merged"
+mkdir -m 0773 -p "$RUNDIR/work/judge"
+mkdir -m 0773 -p "$RUNDIR/ofs"
+mkdir -m 0773 -p "$RUNDIR/ofs/merged"
+mkdir -m 0753 -p "$RUNDIR/merged"
 
 cat > "$RUNDIR/runguard_command" << EOF
 #!/bin/bash

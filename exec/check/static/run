@@ -38,18 +38,18 @@ chmod +x "$RUN_SCRIPT/run"
 touch program.meta program.err
 touch compare.meta compare.err
 
-mkdir -m 0777 -p run # 运行的临时文件都在这里
-mkdir -m 0777 -p feedback
-mkdir -m 0755 -p work
-mkdir -m 0777 -p work/judge
-mkdir -m 0777 -p work/feedback
-mkdir -m 0755 -p work/compare
-mkdir -m 0755 -p work/data
-mkdir -m 0777 -p work/run
-mkdir -m 0777 -p ofs
-mkdir -m 0777 -p ofs/merged
-mkdir -m 0777 -p ofs/judge
-mkdir -m 0755 -p merged
+mkdir -m 0773 -p run # 运行的临时文件都在这里
+mkdir -m 0773 -p feedback
+mkdir -m 0753 -p work
+mkdir -m 0773 -p work/judge
+mkdir -m 0773 -p work/feedback
+mkdir -m 0753 -p work/compare
+mkdir -m 0753 -p work/data
+mkdir -m 0773 -p work/run
+mkdir -m 0773 -p ofs
+mkdir -m 0773 -p ofs/merged
+mkdir -m 0773 -p ofs/judge
+mkdir -m 0753 -p merged
 
 cat > runguard_command << EOF
 #!/bin/bash

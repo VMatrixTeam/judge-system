@@ -98,7 +98,7 @@ else
     exec >>compile.out 2>&1
 fi
 
-$GAINROOT chmod -R 777 "$WORKDIR/compile"
+$GAINROOT chmod -R 773 "$WORKDIR/compile"
 $GAINROOT chown -R "$RUNUSER" "$WORKDIR/compile"
 touch compile.meta
 
@@ -110,15 +110,15 @@ if [ ! -z "$ENTRY_POINT" ]; then
     ENVIRONMENT_VARS="-V ENTRY_POINT=$ENTRY_POINT"
 fi
 
-mkdir -p "$RUNDIR"; chmod 777 "$RUNDIR"
+mkdir -p "$RUNDIR"; chmod 773 "$RUNDIR"
 
 chmod -R +x "$COMPILE_SCRIPT"
 
-mkdir -p "$RUNDIR/work"; chmod 777 "$RUNDIR/work"
-mkdir -p "$RUNDIR/work/judge"; chmod 777 "$RUNDIR/work/judge"
-mkdir -p "$RUNDIR/work/compile"; chmod 777 "$RUNDIR/work/compile"
-mkdir -p "$RUNDIR/merged"; chmod 777 "$RUNDIR/merged"
-mkdir -p "$RUNDIR/ofs"; chmod 777 "$RUNDIR/ofs"
+mkdir -p "$RUNDIR/work"; chmod 773 "$RUNDIR/work"
+mkdir -p "$RUNDIR/work/judge"; chmod 773 "$RUNDIR/work/judge"
+mkdir -p "$RUNDIR/work/compile"; chmod 773 "$RUNDIR/work/compile"
+mkdir -p "$RUNDIR/merged"; chmod 773 "$RUNDIR/merged"
+mkdir -p "$RUNDIR/ofs"; chmod 773 "$RUNDIR/ofs"
 
 cat > "$RUNDIR/runguard_command" << EOF
 #!/bin/bash

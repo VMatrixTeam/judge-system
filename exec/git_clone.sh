@@ -49,7 +49,7 @@ fi
 cd "$WORKDIR"
 
 mkdir -p "$WORKDIR/compile"
-$GAINROOT chmod -R 777 "$WORKDIR/compile"
+$GAINROOT chmod -R 773 "$WORKDIR/compile"
 $GAINROOT chown -R "$RUNUSER" "$WORKDIR/compile"
 
 cd "$WORKDIR/compile"

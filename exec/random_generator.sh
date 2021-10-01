@@ -142,19 +142,19 @@ chmod a+rwx "$WORKDIR/output"
 touch random.err
 
 RUNDIR="$WORKDIR/run"
-mkdir -m 0777 -p "$RUNDIR"
+mkdir -m 0773 -p "$RUNDIR"
 
 chmod -R +x "$RUN_SCRIPT/run"
 chmod -R +x "$RAN_GEN/run"
 chmod -R +x "$STD_PROG/run"
 
-mkdir -m 0555 -p "$RUNDIR/work"
-mkdir -m 0755 -p "$RUNDIR/work/judge"
-mkdir -m 0755 -p "$RUNDIR/work/run"
-mkdir -m 0755 -p "$RUNDIR/merged"
-mkdir -m 0777 -p "$RUNDIR/ofs/merged"
-mkdir -m 0777 -p "$RUNDIR/ofs/judge"
-mkdir -m 0777 -p "$RUNDIR/ofs/judge2"
+mkdir -m 0553 -p "$RUNDIR/work"
+mkdir -m 0753 -p "$RUNDIR/work/judge"
+mkdir -m 0753 -p "$RUNDIR/work/run"
+mkdir -m 0753 -p "$RUNDIR/merged"
+mkdir -m 0773 -p "$RUNDIR/ofs/merged"
+mkdir -m 0773 -p "$RUNDIR/ofs/judge"
+mkdir -m 0773 -p "$RUNDIR/ofs/judge2"
 
 cat > "$RUNDIR/runguard_command" << EOF
 #!/bin/bash

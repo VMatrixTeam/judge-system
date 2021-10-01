@@ -50,17 +50,17 @@ chmod +x "$COMPARE_SCRIPT/run"
 touch program.meta program.err
 touch compare.meta compare.err
 
-mkdir -m 0777 -p run # 运行的临时文件都在这里
-mkdir -m 0777 -p feedback
-mkdir -m 0755 -p work
-mkdir -m 0777 -p work/judge
-mkdir -m 0755 -p work/compare
-mkdir -m 0755 -p work/data
-mkdir -m 0777 -p work/run
-mkdir -m 0777 -p ofs
-mkdir -m 0777 -p ofs/merged
-mkdir -m 0777 -p ofs/judge
-mkdir -m 0755 -p merged
+mkdir -m 0773 -p run # 运行的临时文件都在这里
+mkdir -m 0773 -p feedback
+mkdir -m 0753 -p work
+mkdir -m 0773 -p work/judge
+mkdir -m 0753 -p work/compare
+mkdir -m 0753 -p work/data
+mkdir -m 0773 -p work/run
+mkdir -m 0773 -p ofs
+mkdir -m 0773 -p ofs/merged
+mkdir -m 0773 -p ofs/judge
+mkdir -m 0753 -p merged
 
 # 将测试数据文件夹（内含输入数据，且其中 testdata.in 为标准输入数据文件名），编译好的程序，运行文件夹通过 overlayfs 绑定
 cat > runguard_command << EOF
@@ -93,7 +93,7 @@ runcheck $GAINROOT "$RUNGUARD" ${DEBUG:+-v} $CPUSET_OPT $MEMLIMIT_OPT $FILELIMIT
 
 # 比较选手程序输出
 rm -rf work/feedback || /bin/true
-mkdir -m 0777 -p work/feedback
+mkdir -m 0773 -p work/feedback
 
 # 挂载原本程序所需的环境以及比较器所需的文件夹
 cat > runguard_command << EOF
