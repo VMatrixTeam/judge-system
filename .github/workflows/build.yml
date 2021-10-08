@@ -13,30 +13,16 @@ jobs:
       - uses: actions/checkout@v2
         with: 
           submodules: "recursive"
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1
 
       - name: Install Packages
         run: sudo hack/install_packages.sh -y
 
       - name: Build Judge System
-        run: hack/build.sh
+        run: |
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          hack/build.sh -DCMAKE_BUILD_TYPE=RelWithDebInfo
       
       - name: Build debian package
         run: cd build && ninja package
-#       - name: Copy Binaries
-#         run: |
-#             mkdir -p bin runguard/bin
-#             cp build/bin/judge-system bin
-#             cp build/runguard/bin/runguard runguard/bin
-#       - name: Archive production artifacts
-#         uses: actions/upload-artifact@v2
-#         with:
-#           name: Runnable Package
-#           path: |
-#             bin/judge-system
-#             runguard/bin/runguard
-#             exec
-#             script
-#             config
-#             prepare.sh
-#             run.sh
-            
