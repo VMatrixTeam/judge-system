@@ -4,7 +4,7 @@ mkdir -p build
 mkdir -p build/ext/rabbitmq-c
 INSTALL_DIR=${INSTALL_DIR:-"/opt/judge"}
 pushd build/ext/rabbitmq-c 
-    cmake -DCMAKE_INSTALL_PREFIX=$(pwd) -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -G"Ninja" ../../../ext/rabbitmq-c 
+    cmake -DCMAKE_INSTALL_PREFIX=$(pwd) -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -G"Ninja" $@ ../../../ext/rabbitmq-c 
     cmake --build .
     cmake --build . --target install
 popd
