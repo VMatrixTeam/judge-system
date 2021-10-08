@@ -440,11 +440,11 @@ int run_unshare(runguard_options opt) {
         case 0: {  // child process, run the command
             BOOST_LOG_TRIVIAL(debug) << "Stdout_filename = " << opt.stdout_filename;
             if (opt.stdout_filename.size())
-                freopen(opt.stdout_filename.c_str(), "w", stdout);
+                (void)freopen(opt.stdout_filename.c_str(), "w", stdout);
             if (opt.stderr_filename.size())
-                freopen(opt.stderr_filename.c_str(), "w", stderr);
+                (void)freopen(opt.stderr_filename.c_str(), "w", stderr);
             if (opt.stdin_filename.size())
-                freopen(opt.stdin_filename.c_str(), "r", stdin);
+                (void)freopen(opt.stdin_filename.c_str(), "r", stdin);
 
             set_restrictions(opt);
 
@@ -522,11 +522,11 @@ int run_seccomp(runguard_options opt) {
             throw system_error(errno, generic_category(), "unable to fork");
         case 0: {  // child process, run the command
             if (opt.stdout_filename.size())
-                freopen(opt.stdout_filename.c_str(), "w", stdout);
+                (void)freopen(opt.stdout_filename.c_str(), "w", stdout);
             if (opt.stderr_filename.size())
-                freopen(opt.stderr_filename.c_str(), "w", stderr);
+                (void)freopen(opt.stderr_filename.c_str(), "w", stderr);
             if (opt.stdin_filename.size())
-                freopen(opt.stdin_filename.c_str(), "r", stdin);
+                (void)freopen(opt.stdin_filename.c_str(), "r", stdin);
 
             set_restrictions(opt);
 
