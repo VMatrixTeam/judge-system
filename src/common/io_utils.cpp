@@ -82,7 +82,7 @@ scoped_file_lock::scoped_file_lock() {
 
 scoped_file_lock::scoped_file_lock(const fs::path &path, bool shared) : lock_file(path) {
     LOG_DEBUG << "Locking " << path << " share: " << shared;
-    fd = open(path.c_str(), O_CREAT | O_RDWR);
+    fd = open(path.c_str(), O_CREAT | O_RDWR, 0755);
     flock(fd, shared ? LOCK_SH : LOCK_EX);
     valid = true;
 }
