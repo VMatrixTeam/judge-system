@@ -440,11 +440,17 @@ int run_unshare(runguard_options opt) {
         case 0: {  // child process, run the command
             BOOST_LOG_TRIVIAL(debug) << "Stdout_filename = " << opt.stdout_filename;
             if (opt.stdout_filename.size())
-                (void)freopen(opt.stdout_filename.c_str(), "w", stdout);
+                if (freopen(opt.stdout_filename.c_str(), "w", stdout) == NULL) {
+                    BOOST_LOG_TRIVIAL(warning) << "unable to freopen stdout";
+                }
             if (opt.stderr_filename.size())
-                (void)freopen(opt.stderr_filename.c_str(), "w", stderr);
+                if (freopen(opt.stderr_filename.c_str(), "w", stderr) == NULL) {
+                    BOOST_LOG_TRIVIAL(warning) << "unable to freopen stderr";
+                }
             if (opt.stdin_filename.size())
-                (void)freopen(opt.stdin_filename.c_str(), "r", stdin);
+                if (freopen(opt.stdin_filename.c_str(), "r", stdin) == NULL) {
+                    BOOST_LOG_TRIVIAL(warning) << "unable to freopen stdin";
+                }
 
             set_restrictions(opt);
 
@@ -522,11 +528,17 @@ int run_seccomp(runguard_options opt) {
             throw system_error(errno, generic_category(), "unable to fork");
         case 0: {  // child process, run the command
             if (opt.stdout_filename.size())
-                (void)freopen(opt.stdout_filename.c_str(), "w", stdout);
+                if (freopen(opt.stdout_filename.c_str(), "w", stdout) == NULL) {
+                    BOOST_LOG_TRIVIAL(warning) << "unable to freopen stdout";
+                }
             if (opt.stderr_filename.size())
-                (void)freopen(opt.stderr_filename.c_str(), "w", stderr);
+                if (freopen(opt.stderr_filename.c_str(), "w", stderr) == NULL) {
+                    BOOST_LOG_TRIVIAL(warning) << "unable to freopen stderr";
+                }
             if (opt.stdin_filename.size())
-                (void)freopen(opt.stdin_filename.c_str(), "r", stdin);
+                if (freopen(opt.stdin_filename.c_str(), "r", stdin) == NULL) {
+                    BOOST_LOG_TRIVIAL(warning) << "unable to freopen stdin";
+                }
 
             set_restrictions(opt);
 
