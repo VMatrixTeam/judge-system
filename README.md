@@ -1,6 +1,75 @@
-# judge-system 4.0
+# Matrix Judge System
+
 一个支持 DOMjudge、Sicily Online Judge、Matrix Online Judge 的评测系统。
 本评测系统分为两个项目：judge-system、runguard。其中 runguard 子项目的细节请到 runguard 文件夹查看。
+
+## 安装运行
+
+仅在 Debian 11 上测试过。
+
+### 修改内核参数
+
+使用本评测系统需要编辑内核参数，启用 cgroupv1 以及内存控制器。
+
+编辑 `/etc/default/grub` 文件，在 `GRUB_CMDLINE_LINUX_DEFAULT` 和 `GRUB_CMDLINE_LINUX` 添加两个参数：`systemd.unified_cgroup_hierarchy=0 cgroup_enable=memory swapaccount=1` 并保存。
+
+**然后运行 `sudo update-grub && sudo reboot` 以新参数启动系统。**
+
+### 安装运行环境
+
+接下来的命令会解压我们准备好的带有各种语言编译以及运行环境的容器镜像并解压到 `/chroot` 目录下，提供评测编译以及运行环境：
+
+```bash
+## 安装 OCI 镜像操作工具
+sudo apt install -y skopeo git curl
+sudo curl -o /usr/bin/umoci -L https://github.com/opencontainers/umoci/releases/download/v0.4.7/umoci.amd64
+sudo chmod +x /usr/bin/umoci
+
+## 展开镜像
+skopeo copy docker://vmatrixdev/judge-env-aio oci:/tmp/judge-env-aio:latest
+sudo umoci unpack --image /tmp/judge-env-aio:latest /tmp/judge-env-unpack && rm -rf /tmp/judge-env-aio
+sudo rm -rf /chroot
+sudo mv /tmp/judge-env-unpack/rootfs /chroot && sudo rm -rf /tmp/judge-env-unpack
+sudo mkdir -p /chroot/dev/pts /chroot/sys /chroot/proc
+```
+
+如果你需要测试构建好的 chroot 环境是否正常，你可以通过以下方式进入 chroot 环境，执行 g++ 等命令来测试。
+
+```bash
+cd /opt/judge
+sudo bash exec/chroot_run.sh -d /chroot
+```
+
+<details>
+<summary>运行环境概览</summary>
+一个 `chroot` 环境需要包含：
+
+完整的 Debian 或 Ubuntu 环境：以允许 bash 脚本的运行。
+
+以及各个编程语言的编译运行环境：
+* curl
+* git
+* make（允许 Makefile 构建）
+* golang
+* rustc
+* default-jdk-headless
+* pypy（Python 2）
+* python3
+* clang
+* ruby
+* scala
+* libboost-all-dev（支持评测系统、runguard 的运行时环境、允许选手调用 boost 库）
+* cmake（支持题目使用 cmake 编译）
+* libgtest-dev（支持 gtest 评测）
+* gcc, gcc-10, g++, g++-10（允许使用 C++2a）
+* gcc-multilib, g++-multilib（评测的 spj 可能是 32 位的）
+* fp-compiler
+* oclint（支持静态检查）
+</details>
+
+### 安装评测本体
+
+你可以下载预编译好的 `.deb` 包并使用 `dpkg -i` 命令安装。会将程序以及辅助脚本安装到 `/opt/judge` 目录下，并创建 `/etc/judge` 默认配置以及配置名为 `judge.service` 的 systemd 服务。你可以按需修改配置和服务。
 
 ## 编译运行
 
@@ -18,6 +87,7 @@ hack/build.sh
 ```
 
 ## 架构
+
 一台机器运行一个 judge-system，并启动一些 worker，worker 可以执行不同的任务：
   * 编译测试：负责执行编译，编译完成后的文件允许各个 worker 评测时读取（通过 aufs 来只读挂载）
   * 标准测试：有设计好的输入输出，由 special judge/diff 来对程序输出进行比较。
@@ -179,105 +249,6 @@ check script 通过返回值来确定评分，比如返回 42 表示 AC，43 表
     └── ...
     ```
 
-## 部署
-### 配置 chroot
-无论是评测系统本身，还是选手程序，都需要 chroot 环境来模拟一个干净的 Linux 执行环境，我们通过导出 Docker 镜像/OCI 镜像来获得运行环境。这有两个好处：获得的干净的 Linux 执行环境允许进行编译、运行操作，还可以支持 bash 脚本作为被评测的程序；允许评测系统和选手程序运行在和宿主机不同的发行版本上：比如宿主机是 Ubuntu 16.04 LTS，评测系统和选手程序可以运行在 Debian 11 上（尽管内核版本必须和宿主机一致），这样我们就可以支持各大语言的最新编译环境和运行时，而且省了更换宿主机操作系统的麻烦。
-
-一个 `chroot` 环境需要包含：
-
-完整的 `Ubuntu` 环境：以允许 bash 脚本的运行。
-各个编程语言的编译运行环境：
-* curl
-* make（允许 Makefile 构建）
-* golang
-* rustc
-* default-jdk-headless
-* pypy（Python 2）
-* python3
-* clang
-* ruby
-* scala
-* libboost-all-dev（支持评测系统、runguard 的运行时环境、允许选手调用 boost 库）
-* cmake（支持题目使用 cmake 编译）
-* libgtest-dev（支持 gtest 评测）
-* gcc, gcc-10, g++, g++-10（允许使用 C++2a）
-* gcc-multilib, g++-multilib（评测的 spj 可能是 32 位的）
-* fp-compiler
-* valgrind（支持内存检查）
-* oclint（支持静态检查）
-
-
-### 部署方案
-部署采用 systemd 方式部署。评测系统使用了 aufs 和 cgroup、命名空间来对选手程序进行权限控制，其实是借鉴了 docker 所使用的虚拟化技术。
-
-1. 配置 chroot，为选手程序提供运行时（只需要执行一次，生成了即可）
-
-```bash
-export DOCKER_IMAGE=vmatrixdev/judge-env-aio
-sudo mkdir /chroot && docker export $(docker run -d $DOCKER_IMAGE) | sudo tar -x -C /chroot
-```
-
-`DOCKER_IMAGE` 可以选择你制作好的镜像。不想安装 Docker，也可以用 skopeo 和 umoci 工具来制作：
-
-```bash
-export DOCKER_IMAGE=vmatrixdev/judge-env-aio
-sudo mkdir /chroot
-skopeo copy docker://vmatrixdev/judge-env-aio oci:judge-env-aio:latest
-sudo umoci unpack --image judge-env-aio:latest judge-env-unpack
-sudo mv judge-env-unpack/rootfs/* /chroot
-```
-
-2. 创建评测账户
-```bash
-sudo useradd -d /nonexistent -U -M -s /bin/false judge
-```
-
-3. 生成 cgroups，每次计算机启动时都需要执行这个脚本注册 cgroups
-```bash
-sudo bash $EXEC_DIR/create_cgroups.sh judge
-```
-表示我们使用 judge 这个账号来运行用户程序
-
-4. 安装评测系统所需依赖
-请确保你的操作系统至少是 Ubuntu 18.04 或者 Debian bullseye！！！！！否则配置依赖会很麻烦哦。
-
-然后安装评测系统所需的依赖库，比如 cgroup 用来控制 CPU 和 内存使用；libcurl 用来从远程服务器下载文件；libboost 是 boost 库，注意 boost 的版本至少为 1.65；python3 是评测脚本依赖环境，允许评测脚本使用 python3 编写；python3-pip 方便评测脚本按需下载依赖代码；libmariadb-dev-compat 用来连接 MySQL 数据库（Sicily 和 2.0 接口需要数据库访问支持）。其中 gcc 和 g++ 版本至少是 9.
-
-```bash
-sudo hack/install_packages.sh
-```
-
-
-5. 构建评测系统
-一般情况下，依赖安装完成之后都可以正常通过编译，但请确保 g++ 版本是 9 以上，因为评测系统使用了 `std::filesystem`，这个 gcc 7 和 8 尚未提供完整版本。
-
-```bash
-hack/build.sh
-```
-
-6. 启动评测系统，评测系统允许通过命令行参数来对核心使用进行控制：
-请务必使用 systemd 部署。请参考 `config/systemd` 目录下的文件
-
-```bash
-export CACHEDIR=/tmp/judge-system
-export RUNDIR=/tmp/judge-system
-export DATADIR=/ramdisk/rundir
-export CHROOTDIR=/chroot
-export CACHERANDOMDATA=4
-export RUNUSER=judge
-export RUNGROUP=judge
-sudo bash ./run.sh --enable-sicily=/etc/judge/sicily.conf --enable-3=/etc/judge/moj.conf --enable-2=/etc/judge/mcourse.conf --enable-2=/etc/judge/mexam.conf --cores=0-9
-```
-
-为了减轻一台服务器 10 个评测队列一起抢 IO 从而导致评测结果不准确，我们使用内存盘来确保 IO 性能：程序的输入输出的 IO 操作全部在内存中完成，内存的速度显然比磁盘 IO 快，就算这导致了内存带宽的不足，也会比多核心抢 IO 要来的好；其次，选手程序是临时文件，并不需要写入磁盘，这样能减少评测系统对磁盘的消耗。
-
-
-7. 测试 chroot 环境
-如果你需要测试构建好的 chroot 环境是否正常，你可以通过
-```bash
-sudo bash exec/chroot_run.sh -d /chroot
-```
-的方式进入 chroot 环境。
 
 ## 调试
 
@@ -286,7 +257,7 @@ sudo bash exec/chroot_run.sh -d /chroot
 1. 照着部署方案前四步做。
 2. 打开 VSCode，安装 C/C++ Extension 和 CMake Tools（注意是微软出的那个）。
 3. CMake Tools 会弹出对话框进行 Configure，完成之后点击 VSCode 底栏的 Build 即可完成构建。
-4. 点击 Run 栏目，选择一项运行调试。
+4. 点击 Run 栏目，选择一项运行调试。或者使用 gdb attach 的方式附加到运行中的进程进行调试。
 
 ### 配置调试环境
 
@@ -299,5 +270,5 @@ python test.py [config.json] [detail.json]
 
 ### vscode 调试方法
 
-评测系统需要 root 权限才能运行（因为 chroot），建议在虚拟机下使用 root 用户进行开发。也可以给 VSCode Remote 使用 root 用户。
+建议是使用 gdb attach 的方法将调试器附加到进程上进行调试。
 
