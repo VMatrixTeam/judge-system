@@ -6,11 +6,7 @@ jobs:
   build:
     # virtual environments: https://github.com/actions/virtual-environments
     runs-on: ubuntu-latest
-    container: debian:bullseye
     steps:
-      - name: Install Git
-        run: apt update && apt install git -y
-        
       - uses: actions/checkout@v2
         with: 
           submodules: "recursive"
@@ -19,7 +15,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1
       
       - name: Install Packages
-        run: hack/install_packages.sh -y
+        run: sudo hack/install_packages.sh -y
 
       - name: Build Judge System
         run: |
