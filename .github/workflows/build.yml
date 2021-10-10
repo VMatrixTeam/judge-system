@@ -6,7 +6,7 @@ jobs:
   build:
     # virtual environments: https://github.com/actions/virtual-environments
     runs-on: ubuntu-latest
-
+    container: debian:bullseye
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, which is the CWD for
       # the rest of the steps
