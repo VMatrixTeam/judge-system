@@ -17,7 +17,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1
 
       - name: Install Packages
-        run: sudo hack/install_packages.sh -y
+        run: hack/install_packages.sh -y
 
       - name: Build Judge System
         run: |
